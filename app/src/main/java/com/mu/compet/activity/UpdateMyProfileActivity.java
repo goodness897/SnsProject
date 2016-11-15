@@ -1,21 +1,15 @@
 package com.mu.compet.activity;
 
-import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.graphics.Matrix;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.provider.MediaStore;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
@@ -31,9 +25,9 @@ import android.widget.PopupWindow;
 import android.widget.TextView;
 
 import com.mu.compet.R;
-import com.mu.compet.fragment.SelectImageCheckDialogFragment;
 import com.mu.compet.data.ResultMessage;
 import com.mu.compet.data.User;
+import com.mu.compet.fragment.SelectImageCheckDialogFragment;
 import com.mu.compet.manager.NetworkManager;
 import com.mu.compet.manager.NetworkRequest;
 import com.mu.compet.manager.PropertyManager;
@@ -41,7 +35,11 @@ import com.mu.compet.request.UpdateProfileRequest;
 
 import java.io.File;
 
-public class UpdateMyProfileActivity extends AppCompatActivity {
+public class UpdateMyProfileActivity extends BaseActivity {
+
+    private static final String TAG = UpdateMyProfileActivity.class.getSimpleName();
+
+
 
     private EditText nickNameEditText;
     private TextView changeImageText;
@@ -66,10 +64,10 @@ public class UpdateMyProfileActivity extends AppCompatActivity {
         initToolBar(getString(R.string.activity_update_my_profile));
 
         Intent intent = getIntent();
-        user = (User)intent.getSerializableExtra("user");
+        user = (User) intent.getSerializableExtra("user");
 
         nickNameEditText = (EditText) findViewById(R.id.edit_my_nickname);
-        if(!TextUtils.isEmpty(user.getUserNick())){
+        if (!TextUtils.isEmpty(user.getUserNick())) {
             nickNameEditText.setText(user.getUserNick());
         }
 
@@ -77,21 +75,12 @@ public class UpdateMyProfileActivity extends AppCompatActivity {
         profileView = (ImageView) findViewById(R.id.image_my_profile);
 
         if (savedInstanceState != null) {
-            String path = savedInstanceState.getString("savedfile");
-            if (!TextUtils.isEmpty(path)) {
-                mSavedFile = new File(path);
-            }
-            path = savedInstanceState.getString("contentfile");
-            if (!TextUtils.isEmpty(path)) {
-                mContentFile = new File(path);
-                int dstWidth = 200;
-                int dstHeight = 200;
-                BitmapFactory.Options options = new BitmapFactory.Options();
-                options.inSampleSize = 4;
-                Bitmap bmImg = BitmapFactory.decodeFile(mContentFile.getAbsolutePath(), options);
-                Bitmap resized = Bitmap.createScaledBitmap(bmImg, dstWidth, dstHeight, true);
-                profileView.setImageBitmap(resized);
-            }
+            contentUri = Uri.parse(savedInstanceState.getString("media_url"));
+        }
+
+        File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+        if (!path.exists()) {
+            path.mkdirs();
         }
 
 
@@ -118,8 +107,8 @@ public class UpdateMyProfileActivity extends AppCompatActivity {
                     @Override
                     public void onClick(View v) {
 
-                        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                        intent.setType("image/*");
+                        checkPermission(v.getContext());
+                        Intent intent = new Intent(UpdateMyProfileActivity.this, AddImageActivity.class);
                         startActivityForResult(intent, RC_GET_IMAGE);
 
                     }
@@ -128,10 +117,8 @@ public class UpdateMyProfileActivity extends AppCompatActivity {
                 cameraText.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                        Uri uri = getSaveFile();
-                        intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
-                        startActivityForResult(intent, RC_CAMERA);
+                        checkPermission(v.getContext());
+                        dispatchTakePictureIntent();
                     }
                 });
 //                dialogFragment = new SelectImageCheckDialogFragment();
@@ -148,18 +135,7 @@ public class UpdateMyProfileActivity extends AppCompatActivity {
         });
     }
 
-    public Uri getSaveFile() {
-        File dir = new File(Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES
-        ), "my_image");
-        if (!dir.exists()) {
-            dir.mkdirs();
-        }
-        mSavedFile = new File(dir, "my_picture_" + System.currentTimeMillis() + ".jpg");
-        return Uri.fromFile(mSavedFile);
-    }
-
-    private void initToolBar(String title) {
+    public void initToolBar(String title) {
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.main_toolbar);
         setSupportActionBar(toolbar);
@@ -172,7 +148,7 @@ public class UpdateMyProfileActivity extends AppCompatActivity {
             public void onClick(View v) {
                 String oldNickName = user.getUserNick();
                 String newNickName = nickNameEditText.getText().toString();
-                if(oldNickName.equals(newNickName)){
+                if (oldNickName.equals(newNickName)) {
                     // 기존의 NickName 과 변경된 사항이 같을 경우 AlertDialog 를 띄우지 않음.
                     finish();
                 } else {
@@ -219,6 +195,11 @@ public class UpdateMyProfileActivity extends AppCompatActivity {
             // 수정사항 변경 완료
             final String userNick = nickNameEditText.getText().toString();
 
+            if (userFile != null) {
+                Log.d(TAG, "파일 : " + userFile.getAbsolutePath());
+            }
+
+
             UpdateProfileRequest request = new UpdateProfileRequest(this, userNick, userFile);
             NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<ResultMessage>() {
                 @Override
@@ -253,40 +234,47 @@ public class UpdateMyProfileActivity extends AppCompatActivity {
 
 
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
-        super.onActivityResult(requestCode, resultCode, intent);
+        if (resultCode == RESULT_OK) {
+            switch (requestCode) {
 
-        switch (requestCode) {
+                case RC_GET_IMAGE:
+                    StringBuilder str = new StringBuilder();
+                    if (resultCode == RESULT_OK) {
+                        String[] files = intent.getStringArrayExtra("files");
+                        for (String s : files) {
+                            Log.i("ImageFiles", "files : " + s);
+                            str.append(s);
+                        }
+                        String fileName = str.toString();
+                        contentUri = Uri.fromFile(new File(fileName));
+                        cropImage(contentUri);
+                    }
 
-            case RC_CAMERA:
-                if (resultCode == Activity.RESULT_OK) {
-                    mContentFile = mSavedFile;
-                    mContentFile = userFile;
-                    Log.i("Image", "path : " + mContentFile.getAbsolutePath());
-                }
-                break;
+                    break;
+//                case RC_GET_IMAGE:
+//                    Log.d("SignUpActivity", "uri : " + contentUri);
+//                    contentUri = intent.getData();
+                case RC_CAMERA:
+                    rotatePhoto();
+                    cropImage(contentUri);
+                    break;
+                case RC_CROP:
+                    Bundle extras = intent.getExtras();
+                    if (extras != null) {
+                        Bitmap bitmap = (Bitmap) extras.get("data");
+                        Bitmap circleBitmap = circleImage(bitmap);
+                        profileView.setImageBitmap(circleBitmap);
 
-            case RC_GET_IMAGE:
-                if (resultCode == Activity.RESULT_OK) {
-                    dialogFragment.dismiss();
-                    Uri fileUri = intent.getData();
-                    Cursor c = getContentResolver().query(fileUri, new String[]{MediaStore.Images.Media.DATA}, null, null, null);
-                    int dstWidth = 200;
-                    int dstHeight = 200;
-                    if (c.moveToNext()) {
-                        BitmapFactory.Options options = new BitmapFactory.Options();
-                        options.inSampleSize = 4;
-                        String path = c.getString(c.getColumnIndex(MediaStore.Images.Media.DATA));
-                        userFile = new File(path);
-                        Bitmap bmImg = BitmapFactory.decodeFile(path, options);
-                        Matrix matrix = new Matrix();
-                        matrix.postRotate(90);
-                        Bitmap resized = Bitmap.createScaledBitmap(bmImg, dstWidth, dstHeight, true);
-                        Bitmap rotateBitmap = Bitmap.createBitmap(resized, 0, 0, resized.getWidth(), resized.getHeight(), matrix, true);
-                        profileView.setImageBitmap(rotateBitmap);
-                        Log.i("Image", "path : " + path);
+                        if (mCurrentPhotoPath != null) {
+                            userFile = new File(mCurrentPhotoPath);
+                            if (userFile.exists()) {
+                                userFile.delete();
+                            }
+//                            mCurrentPhotoPath = null;
+                        }
                     }
                     break;
-                }
+            }
         }
     }
 

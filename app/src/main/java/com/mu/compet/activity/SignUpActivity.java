@@ -56,6 +56,11 @@ public class SignUpActivity extends BaseActivity {
             contentUri = Uri.parse(savedInstanceState.getString("media_url"));
         }
 
+        File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+        if (!path.exists()) {
+            path.mkdirs();
+        }
+
         imageProfile = (ImageView) findViewById(R.id.image_profile);
         imageCamera = (ImageView) findViewById(R.id.image_camera);
 
@@ -68,10 +73,7 @@ public class SignUpActivity extends BaseActivity {
         completeButton = (Button) findViewById(R.id.btn_complete);
         imageCamera.bringToFront();
 
-        File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-        if (!path.exists()) {
-            path.mkdirs();
-        }
+
     }
 
     public void addPictureClicked(View view) {
