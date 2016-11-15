@@ -232,7 +232,6 @@ public class UpdateMyProfileActivity extends AppCompatActivity {
                 public void onFail(NetworkRequest<ResultMessage> request, int errorCode, String errorMessage, Throwable e) {
                     Log.d("UpdateMyProfileActivity", "실패 : " + errorMessage);
 
-
                 }
 
             });

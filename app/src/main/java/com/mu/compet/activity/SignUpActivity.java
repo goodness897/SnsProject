@@ -3,18 +3,9 @@ package com.mu.compet.activity;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Matrix;
-import android.graphics.Paint;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffXfermode;
-import android.graphics.Rect;
-import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -36,20 +27,11 @@ import com.mu.compet.request.NickNameDuplicateCheckRequest;
 import com.mu.compet.util.ToastUtil;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 public class SignUpActivity extends BaseActivity {
 
 
-    private static final int RC_GET_IMAGE = 1;
-    private static final int RC_CAMERA = 2;
-    private static final int RC_CROP = 3;
+
 
     private ImageView imageProfile;
     private ImageView imageCamera;
@@ -61,9 +43,7 @@ public class SignUpActivity extends BaseActivity {
 
     private Button completeButton;
 
-    private String mCurrentPhotoPath;
-    private Uri contentUri;
-    private File userFile;
+
 
 
     @Override
@@ -108,40 +88,6 @@ public class SignUpActivity extends BaseActivity {
         checkPermission(this);
         dispatchTakePictureIntent();
 
-    }
-
-    private void dispatchTakePictureIntent() {
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            File photoFile = null;
-            try {
-                photoFile = createImageFile();
-            } catch (IOException ex) {
-
-            }
-            if (photoFile != null) {
-                contentUri = Uri.fromFile(photoFile);
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile));
-                startActivityForResult(takePictureIntent, RC_CAMERA);
-            }
-        }
-    }
-
-    private File createImageFile() throws IOException {
-        // Create an image file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
-        File storageDir = Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(
-                imageFileName,  /* prefix */
-                ".jpg",         /* suffix */
-                storageDir      /* directory */
-        );
-
-        mCurrentPhotoPath = image.getAbsolutePath();
-
-        return image;
     }
 
     private TextWatcher setTextWatcher() {
@@ -303,157 +249,7 @@ public class SignUpActivity extends BaseActivity {
         }
     }
 
-    private void cropImage(Uri contentUri) {
-        Intent cropIntent = new Intent("com.android.camera.action.CROP");
-        //indicate image type and Uri of image
-        cropIntent.setDataAndType(contentUri, "image/*");
-        //set crop properties
-        cropIntent.putExtra("crop", "true");
-        //indicate aspect of desired crop
-        cropIntent.putExtra("aspectX", 1);
-        cropIntent.putExtra("aspectY", 1);
-        //indicate output X and Y
-        cropIntent.putExtra("outputX", 256);
-        cropIntent.putExtra("outputY", 256);
-        //retrieve data on return
-        cropIntent.putExtra("return-data", true);
-        startActivityForResult(cropIntent, RC_CROP);
-    }
 
-    private Bitmap circleImage(Bitmap bitmapimg) {
-
-        Bitmap output = Bitmap.createBitmap(bitmapimg.getWidth(),
-                bitmapimg.getHeight(), Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(output);
-
-        final int color = 0xff424242;
-        final Paint paint = new Paint();
-        final Rect rect = new Rect(0, 0, bitmapimg.getWidth(),
-                bitmapimg.getHeight());
-
-        paint.setAntiAlias(true);
-        canvas.drawARGB(0, 0, 0, 0);
-        paint.setColor(color);
-        canvas.drawCircle(bitmapimg.getWidth() / 2,
-                bitmapimg.getHeight() / 2, bitmapimg.getWidth() / 2, paint);
-        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
-        canvas.drawBitmap(bitmapimg, rect, rect, paint);
-        return output;
-    }
-
-    public Bitmap getBitmap() {
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inInputShareable = true;
-        options.inDither = false;
-        options.inTempStorage = new byte[32 * 1024];
-        options.inPurgeable = true;
-        options.inJustDecodeBounds = false;
-
-        File f = new File(mCurrentPhotoPath);
-
-        FileInputStream fs = null;
-        try {
-            fs = new FileInputStream(f);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-
-        Bitmap bm = null;
-
-        try {
-            if (fs != null) bm = BitmapFactory.decodeFileDescriptor(fs.getFD(), null, options);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (fs != null) {
-                try {
-                    fs.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        return bm;
-    }
-
-    public void rotatePhoto() {
-        ExifInterface exif;
-        try {
-            if (mCurrentPhotoPath == null) {
-                mCurrentPhotoPath = contentUri.getPath();
-            }
-            exif = new ExifInterface(mCurrentPhotoPath);
-            int exifOrientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
-            int exifDegree = exifOrientationToDegrees(exifOrientation);
-            if (exifDegree != 0) {
-                Bitmap bitmap = getBitmap();
-                Bitmap rotatePhoto = rotate(bitmap, exifDegree);
-                saveBitmap(rotatePhoto);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-    }
-
-    public int exifOrientationToDegrees(int exifOrientation) {
-        if (exifOrientation == ExifInterface.ORIENTATION_ROTATE_90) {
-            return 90;
-        } else if (exifOrientation == ExifInterface.ORIENTATION_ROTATE_180) {
-            return 180;
-        } else if (exifOrientation == ExifInterface.ORIENTATION_ROTATE_270) {
-            return 270;
-        }
-        return 0;
-    }
-
-    public static Bitmap rotate(Bitmap image, int degrees) {
-        if (degrees != 0 && image != null) {
-            Matrix m = new Matrix();
-            m.setRotate(degrees, (float) image.getWidth(), (float) image.getHeight());
-
-            try {
-                Bitmap b = Bitmap.createBitmap(image, 0, 0, image.getWidth(), image.getHeight(), m, true);
-
-                if (image != b) {
-                    image.recycle();
-                    image = b;
-                }
-
-                image = b;
-            } catch (OutOfMemoryError ex) {
-                ex.printStackTrace();
-            }
-        }
-        return image;
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle savedInstanceState) {
-        // Save the user's current state
-        if (contentUri != null) {
-            savedInstanceState.putString("media_url", contentUri.toString());
-        }
-        // Always call the superclass so it can save the view hierarchy state
-        super.onSaveInstanceState(savedInstanceState);
-    }
-
-
-    public void saveBitmap(Bitmap bitmap) {
-        File file = new File(mCurrentPhotoPath);
-        OutputStream out = null;
-        try {
-            out = new FileOutputStream(file);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
-        try {
-            out.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
 
 }
