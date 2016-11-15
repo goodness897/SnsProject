@@ -1,0 +1,27 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:gravity="center_horizontal"
+    android:background="@color/transparentCoolGray"
+    android:orientation="vertical"
+    tools:context="com.mu.compet.fragment.SelectImageCheckDialogFragment">
+
+    <TextView
+        android:id="@+id/text_gallery"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="32dp"
+        android:text="이미지 가져오기"
+        android:textColor="@color/textBlack"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/text_camera"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="32dp"
+        android:text="카메라로 사진 찍기"
+        android:textColor="@color/textBlack"
+        android:textSize="16sp" />
+</LinearLayout>

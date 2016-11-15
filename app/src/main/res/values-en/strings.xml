@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="edit_id">ID</string>
+    <string name="edit_password">PASSWORD</string>
+    <string name="btn_login">Login</string>
+    <string name="btn_sign_up">Sign Up !</string>
+    <string name="activity_sign_up">SignUp</string>
+    <string name="edit_password_check">Password Check</string>
+    <string name="edit_nickname">NickName</string>
+    <string name="text_password_check">Duplicate Check</string>
+    <string name="text_duplicate_check">Duplicate Check</string>
+    <string name="btn_complete_sign_up">SignUp</string>
+    <string name="activity_new_write">New Post</string>
+    <string name="edit_search_keyword">Please enter your keyword</string>
+    <string name="btn_complete_post">Share my board</string>
+    <string name="update_my_profile">Update Profile</string>
+    <string name="activity_setting">Setting</string>
+    <string name="text_change_image">Change your photo</string>
+    <string name="btn_change_password">Change your password</string>
+    <string name="btn_logout">Logout</string>
+    <string name="btn_leave">Leave</string>
+    <string name="edit_new_password">New Password</string>
+    <string name="edit_new_password_check">New Password Check</string>
+    <string name="edit_old_password">Current Password</string>
+    <string name="activity_detail_post">Detail Page</string>
+    <string name="activity_update_post">Update Page</string>
+    <string name="text_sign_up">Not Sign Up?</string>
+    <string name="action_write_complete">Share</string>
+    <string name="activity_update_my_profile">Update Profile</string>
+    <string name="action_complete">Done</string>
+    <string name="dialog_ok">Ok</string>
+    <string name="dialog_cancel">Cancel</string>
+    <string name="logout_message">Are you sure you want to logout?</string>
+    <string name="leave_message">Are you sure you want to leave?</string>
+    <string name="dialog_not_saved">Want to save your changes to Document?</string>
+    <string name="action_update">Update</string>
+    <string name="action_delete">Delete</string>
+    <string name="Look">Look</string>
+    <string name="password_hide">Hide</string>
+    <string name="setting_language">Setting Language</string>
+    <string name="text_recommend">Recommend Keyword</string>
+</resources>

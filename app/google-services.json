@@ -1,0 +1,38 @@
+{
+  "project_info": {
+    "project_number": "767856008791",
+    "project_id": "firebase-compet"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:767856008791:android:6a39cf77bf30c374",
+        "android_client_info": {
+          "package_name": "com.mu.compet"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAJxcAnyMTkzW0hLt2AI6o5bHL3M0j5gbw"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 2,
+          "analytics_property": {
+            "tracking_id": "UA-87401098-1"
+          }
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

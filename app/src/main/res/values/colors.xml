@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+
+    <!--<color name="mainRedColor">#FF432E</color>-->
+    <color name="mainRedColor">#5677FC</color>
+    <color name="subGreenColor">#B1EB00</color>
+    <color name="subBlueColor">#53BBF4</color>
+    <color name="subPinkColor">#FF85CB</color>
+    <color name="subYellowColor">#FFAC00</color>
+
+    <color name="mainBluecolor">#5677FC</color>
+    <color name="secondSubBlueColor">#4F6BF0</color>
+
+    <color name="postCount">#4D000000</color>
+    <color name="brightGray">#f9f9f9</color>
+    <color name="gray">#BCBCBC</color>
+    <color name="brightCoolGray">#EEF3F3</color>
+    <color name="coolGray">#D6DADA</color>
+    <color name="transparentCoolGray">#CCD6DADA</color>
+    <color name="white">#ffffff</color>
+
+    <color name="textBlack">#353535</color>
+
+
+</resources>

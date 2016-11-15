@@ -1,0 +1,57 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    tools:context="com.mu.compet.fragment.SearchFragment">
+
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_margin="16dp"
+        android:orientation="horizontal">
+
+        <Spinner
+            android:theme="@style/SearchTextLabel"
+            android:id="@+id/spinner_search_type"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:entries="@array/search_type" />
+
+        <EditText
+            android:id="@+id/edit_search_keyword"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:background="@drawable/edit_shape_solid"
+            android:textColor="@color/textBlack"
+            android:drawableLeft="@drawable/ic_search"
+            android:drawablePadding="@dimen/drawable_padding_left"
+            android:hint="@string/edit_search_keyword"
+            android:imeOptions="actionSearch"
+            android:inputType="text"
+            android:paddingLeft="@dimen/login_margin_left"
+            android:theme="@style/SearchTextLabel" />
+
+        <Button
+            android:id="@+id/btn_cancel"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginLeft="8dp"
+            android:background="@drawable/ic_cancel_circle" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/search_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/linearLayout">
+    </FrameLayout>
+
+
+</RelativeLayout>
