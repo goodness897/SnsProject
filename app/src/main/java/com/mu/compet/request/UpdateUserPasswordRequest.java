@@ -8,10 +8,10 @@ import com.mu.compet.data.ResultMessage;
 
 import java.lang.reflect.Type;
 
+import okhttp3.FormBody;
 import okhttp3.HttpUrl;
-import okhttp3.MediaType;
-import okhttp3.MultipartBody;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 
 /**
  * Created by jeon on 2016-09-04.
@@ -19,12 +19,9 @@ import okhttp3.Request;
 public class UpdateUserPasswordRequest extends AbstractRequest<ResultMessage> {
     Request mRequest;
 
-    MediaType jpeg = MediaType.parse("image/jpeg");
     private final static String USER = "user";
     private final static String MODIFY = "modify";
     private final static String USER_PASS = "userPass";
-    private final static String USER_NICKNAME = "userNick";
-    private final static String USER_FILE = "userFile";
 
     public UpdateUserPasswordRequest(Context context, String userPass) {
         HttpUrl url = getBaseUrlBuilder()
@@ -32,13 +29,13 @@ public class UpdateUserPasswordRequest extends AbstractRequest<ResultMessage> {
                 .addPathSegment(MODIFY)
                 .build();
 
-        MultipartBody.Builder body = new MultipartBody.Builder()
-                .addFormDataPart(USER_PASS, userPass);
-        MultipartBody requestBody = body.build();
+        RequestBody body = new FormBody.Builder()
+                .add(USER_PASS, userPass)
+                .build();
 
         mRequest = new Request.Builder()
                 .url(url)
-                .post(requestBody)
+                .post(body)
                 .tag(context)
                 .build();
 

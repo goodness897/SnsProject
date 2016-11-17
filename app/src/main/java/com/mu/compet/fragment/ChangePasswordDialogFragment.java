@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,6 +20,7 @@ import com.mu.compet.manager.NetworkManager;
 import com.mu.compet.manager.NetworkRequest;
 import com.mu.compet.request.PasswordCheckRequest;
 import com.mu.compet.request.UpdateUserPasswordRequest;
+import com.mu.compet.util.ToastUtil;
 
 
 /**
@@ -77,18 +79,23 @@ public class ChangePasswordDialogFragment extends DialogFragment {
             @Override
             public void onClick(View v) {
                 String userPass = oldPasswordView.getText().toString();
-                PasswordCheckRequest request = new PasswordCheckRequest(getContext(), userPass);
-                NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<ResultMessage>() {
-                    @Override
-                    public void onSuccess(NetworkRequest<ResultMessage> request, ResultMessage result) {
-                        changePassword();
-                    }
+                if(!TextUtils.isEmpty(userPass)) {
+                    PasswordCheckRequest request = new PasswordCheckRequest(getContext(), userPass);
+                    NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<ResultMessage>() {
+                        @Override
+                        public void onSuccess(NetworkRequest<ResultMessage> request, ResultMessage result) {
+                            changePassword();
+                        }
 
-                    @Override
-                    public void onFail(NetworkRequest<ResultMessage> request, int errorCode, String errorMessage, Throwable e) {
+                        @Override
+                        public void onFail(NetworkRequest<ResultMessage> request, int errorCode, String errorMessage, Throwable e) {
 
-                    }
-                });
+                        }
+                    });
+
+                } else {
+                    ToastUtil.show(getContext(), "빈칸이 있습니다.");
+                }
 
             }
         });
@@ -99,22 +106,28 @@ public class ChangePasswordDialogFragment extends DialogFragment {
     private void changePassword() {
         String newUserPass = newPasswordView.getText().toString();
 
-        UpdateUserPasswordRequest request = new UpdateUserPasswordRequest(getContext(), newUserPass);
-        NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<ResultMessage>() {
-            @Override
-            public void onSuccess(NetworkRequest<ResultMessage> request, ResultMessage result) {
+        if(!TextUtils.isEmpty(newUserPass)) {
+            UpdateUserPasswordRequest request = new UpdateUserPasswordRequest(getContext(), newUserPass);
+            NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<ResultMessage>() {
+                @Override
+                public void onSuccess(NetworkRequest<ResultMessage> request, ResultMessage result) {
 
-                Log.d("ChangePassword", "성공" + result.getMessage());
-                dismiss();
-            }
+                    Log.d("ChangePassword", "성공" + result.getMessage());
+                    dismiss();
+                }
 
-            @Override
-            public void onFail(NetworkRequest<ResultMessage> request, int errorCode, String errorMessage, Throwable e) {
-                Log.d("ChangePassword", "실패" + errorMessage);
+                @Override
+                public void onFail(NetworkRequest<ResultMessage> request, int errorCode, String errorMessage, Throwable e) {
+                    Log.d("ChangePassword", "실패" + errorMessage);
 
 
-            }
-        });
+                }
+            });
+        } else {
+            ToastUtil.show(getContext(), "빈칸이 있습니다.");
+        }
+
+
     }
 
     @Override

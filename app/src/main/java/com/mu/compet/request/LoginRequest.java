@@ -32,8 +32,10 @@ public class LoginRequest extends AbstractRequest<UserItemData> {
     private static final String LOGIN = "login";
     private static final String USER_ID = "userId";
     private static final String USER_PASS = "userPass";
+    private static final String USER_TYPE = "userType";
 
-    public LoginRequest(Context context, String userId, String userPass) {
+    public LoginRequest(Context context, String userType, String userId, String userPass) {
+
 
         HttpUrl url = getBaseUrlBuilder()
                 .addPathSegment(LOGIN)
@@ -41,6 +43,7 @@ public class LoginRequest extends AbstractRequest<UserItemData> {
 
         RequestBody body = new FormBody.Builder()
                 .add(USER_ID, userId)
+                .add(USER_TYPE, userType)
                 .add(USER_PASS, userPass)
                 .build();
 

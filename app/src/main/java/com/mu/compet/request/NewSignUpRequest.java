@@ -76,6 +76,7 @@ public class NewSignUpRequest extends AbstractRequest<ResultMessage> {
     }
 
 
+
     @Override
     protected Type getType() {
         return new TypeToken<ResultMessage>() {

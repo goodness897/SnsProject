@@ -19,6 +19,7 @@ import com.bumptech.glide.Glide;
 import com.mu.compet.R;
 import com.mu.compet.ReplyAdapter;
 import com.mu.compet.data.Board;
+import com.mu.compet.data.BoardItemData;
 import com.mu.compet.data.FileData;
 import com.mu.compet.data.ListData;
 import com.mu.compet.data.Reply;
@@ -26,14 +27,18 @@ import com.mu.compet.data.ResultMessage;
 import com.mu.compet.manager.NetworkManager;
 import com.mu.compet.manager.NetworkRequest;
 import com.mu.compet.manager.PropertyManager;
+import com.mu.compet.request.AbstractRequest;
 import com.mu.compet.request.AddReplyRequest;
 import com.mu.compet.request.DeleteBoardRequest;
+import com.mu.compet.request.DetailBoardRequest;
 import com.mu.compet.request.ListFileRequest;
 import com.mu.compet.request.ListReplyRequest;
 import com.mu.compet.util.StringUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import jp.wasabeef.glide.transformations.CropCircleTransformation;
 
 public class DetailBoardActivity extends BaseActivity {
 
@@ -54,6 +59,8 @@ public class DetailBoardActivity extends BaseActivity {
     private ImageView images[] = new ImageView[3];
 
     private Board board;
+    private String boardNum;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,11 +111,11 @@ public class DetailBoardActivity extends BaseActivity {
 
 
         View headerView = LayoutInflater.from(this).inflate(R.layout.view_detail_header, null, false);
-        initHeader(headerView, board);
+        initHeader(headerView);
         listView.addHeaderView(headerView);
-        String boardNum = String.valueOf(board.getBoardNum());
+        boardNum = String.valueOf(board.getBoardNum());
         mAdapter = new ReplyAdapter(boardNum);
-        mAdapter.setOnAdapterReplyListener(new ReplyAdapter.OnAdapterReplyClickListener() {
+        mAdapter.setOnAdapterReplyListener( new ReplyAdapter.OnAdapterReplyClickListener() {
             @Override
             public void onAdapterReplyClick(int code) {
                 listReplyRequest();
@@ -121,27 +128,7 @@ public class DetailBoardActivity extends BaseActivity {
 
     }
 
-    private void addReplyRequest(String replyContent, String boardNum) {
-        AddReplyRequest request = new AddReplyRequest(this, boardNum, replyContent);
-        NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<ResultMessage>() {
-            @Override
-            public void onSuccess(NetworkRequest<ResultMessage> request, ResultMessage result) {
-                Log.d(TAG, "성공 : " + result.getMessage());
-                replyEdit.setText("");
-                listReplyRequest();
-                listView.smoothScrollToPosition(0);
-
-            }
-
-            @Override
-            public void onFail(NetworkRequest<ResultMessage> request, int errorCode, String errorMessage, Throwable e) {
-                Log.d(TAG, "실패 : " + errorMessage);
-
-            }
-        });
-    }
-
-    private void initHeader(View v, Board board) {
+    private void initHeader(View v) {
         profileImage = (ImageView) v.findViewById(R.id.image_profile);
         nickNameText = (TextView) v.findViewById(R.id.text_nickname);
         postDateText = (TextView) v.findViewById(R.id.text_post_date);
@@ -154,13 +141,64 @@ public class DetailBoardActivity extends BaseActivity {
         images[1] = secondImage;
         images[2] = thirdImage;
 
-        setHeaderView(board);
+    }
+
+    private void initData() {
+
+        detailBoardRequest();
+        listReplyRequest();
 
     }
 
+    private void detailBoardRequest() {
+
+        DetailBoardRequest request = new DetailBoardRequest(this, String.valueOf(boardNum));
+        NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<BoardItemData>() {
+            @Override
+            public void onSuccess(NetworkRequest<BoardItemData> request, BoardItemData result) {
+                Board board = result.getData();
+                setHeaderView(board);
+            }
+
+            @Override
+            public void onFail(NetworkRequest<BoardItemData> request, int errorCode, String errorMessage, Throwable e) {
+
+            }
+        });
+    }
+
+    public void listReplyRequest() {
+
+        String boardNum = String.valueOf(board.getBoardNum());
+        String pageNum = "";
+        String lastReplyNum = "";
+        ListReplyRequest request = new ListReplyRequest(this, boardNum, pageNum, lastReplyNum);
+        NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<ListData<Reply>>() {
+            @Override
+            public void onSuccess(NetworkRequest<ListData<Reply>> request, ListData<Reply> result) {
+
+                Log.d("DetailBoardActivity", "성공 : " + result.getMessage());
+                mAdapter.addAll(result.getData());
+
+            }
+
+            @Override
+            public void onFail(NetworkRequest<ListData<Reply>> request, int errorCode, String errorMessage, Throwable e) {
+                Log.d("DetailBoardActivity", "실패 : " + errorMessage);
+
+            }
+        });
+    }
+
     private void setHeaderView(Board board) {
+
+        String imgPath = "http://" + AbstractRequest.getHOST() + ":"
+                + AbstractRequest.getHttpPort() + "/user/" + board.getUserNum() + "/image";
+
         nickNameText.setText(board.getUserNick());
         postDateText.setText(StringUtil.calculateDate(board.getBoardRegDate()));
+        Glide.with(this).load(imgPath).placeholder(R.drawable.image_default_profile).error(R.drawable.image_default_profile)
+                .bitmapTransform(new CropCircleTransformation(this)).into(profileImage);
         imageRequest(board);
         contentText.setText(board.getBoardContent());
     }
@@ -188,7 +226,7 @@ public class DetailBoardActivity extends BaseActivity {
         ArrayList<String> imageCount = new ArrayList<>();
 
         for (int i = 0; i < list.size(); i++) {
-            if (list.get(i).getFileType().equals("image/jpg") && list.get(i).getFileUrl() != null) {
+            if (list.get(i).getFileType().startsWith("image") && list.get(i).getFileUrl() != null) {
                 imageCount.add(list.get(i).getFileUrl());
                 Log.d(TAG, "파일 : " + list.get(i).getFileUrl());
             }
@@ -198,6 +236,29 @@ public class DetailBoardActivity extends BaseActivity {
             Glide.with(this).load(imageCount.get(j)).into(images[j]);
         }
     }
+
+    private void addReplyRequest(String replyContent, String boardNum) {
+        AddReplyRequest request = new AddReplyRequest(this, boardNum, replyContent);
+        NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<ResultMessage>() {
+            @Override
+            public void onSuccess(NetworkRequest<ResultMessage> request, ResultMessage result) {
+                Log.d(TAG, "성공 : " + result.getMessage());
+                replyEdit.setText("");
+                listReplyRequest();
+                listView.smoothScrollToPosition(1);
+
+            }
+
+            @Override
+            public void onFail(NetworkRequest<ResultMessage> request, int errorCode, String errorMessage, Throwable e) {
+                Log.d(TAG, "실패 : " + errorMessage);
+
+            }
+        });
+    }
+
+
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -222,52 +283,26 @@ public class DetailBoardActivity extends BaseActivity {
 
 
         } else if (id == R.id.action_delete) {
-            String boardNum = String.valueOf(board.getBoardNum());
             DeleteBoardRequest request = new DeleteBoardRequest(this, boardNum);
             NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<ResultMessage>() {
                 @Override
                 public void onSuccess(NetworkRequest<ResultMessage> request, ResultMessage result) {
                     Log.d(TAG, "성공 : " + result.getMessage());
+                    finish();
                 }
 
                 @Override
                 public void onFail(NetworkRequest<ResultMessage> request, int errorCode, String errorMessage, Throwable e) {
                     Log.d(TAG, "실패 : " + errorMessage);
+                    Toast.makeText(DetailBoardActivity.this, "서버가 불안정합니다.", Toast.LENGTH_LONG).show();
 
                 }
             });
-            finish();
+
 
         }
         return super.onOptionsItemSelected(item);
     }
 
-    private void initData() {
 
-        listReplyRequest();
-
-    }
-
-    public void listReplyRequest() {
-
-        String boardNum = String.valueOf(board.getBoardNum());
-        String pageNum = "";
-        String lastReplyNum = "";
-        ListReplyRequest request = new ListReplyRequest(this, boardNum, pageNum, lastReplyNum);
-        NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<ListData<Reply>>() {
-            @Override
-            public void onSuccess(NetworkRequest<ListData<Reply>> request, ListData<Reply> result) {
-
-                Log.d("DetailBoardActivity", "성공 : " + result.getMessage());
-                mAdapter.addAll(result.getData());
-
-            }
-
-            @Override
-            public void onFail(NetworkRequest<ListData<Reply>> request, int errorCode, String errorMessage, Throwable e) {
-                Log.d("DetailBoardActivity", "실패 : " + errorMessage);
-
-            }
-        });
-    }
 }

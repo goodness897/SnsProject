@@ -11,7 +11,10 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.mu.compet.R;
+import com.mu.compet.request.AbstractRequest;
 import com.mu.compet.util.StringUtil;
+
+import jp.wasabeef.glide.transformations.CropCircleTransformation;
 
 /**
  * Created by Mu on 2016-11-03.
@@ -40,12 +43,6 @@ public class BoardView extends FrameLayout {
 
         View view = inflate(getContext(), R.layout.view_post, this);
         initUserView(view);
-        initView(view);
-    }
-
-    public BoardView(Context context, String index) {
-        super(context);
-        View view = inflate(getContext(), R.layout.view_post, this);
         initView(view);
     }
 
@@ -100,9 +97,17 @@ public class BoardView extends FrameLayout {
 
     public void setUserBoardView(Board board) {
 
+        String imgPath = "http://" + AbstractRequest.getHOST() + ":"
+                + AbstractRequest.getHttpPort() + "/user/" + board.getUserNum() + "/image";
+
         this.board = board;
         linearLayout.setVisibility(View.VISIBLE);
-        //        profileImageView.setImageURI(Uri.parse(board.getuser()));
+
+        Glide.with(context).load(imgPath).placeholder(R.drawable.image_default_profile).error(R.drawable.image_default_profile)
+                .bitmapTransform(new CropCircleTransformation(context)).into(profileImageView);
+
+
+
         nickNameTextView.setText(board.getUserNick());
         dateView.setText(StringUtil.calculateDate(board.getBoardRegDate()));
     }
@@ -112,56 +117,18 @@ public class BoardView extends FrameLayout {
 
         this.board = board;
         imageCountView.setText("+" + board.getBoardImgCnt());
-        replyCountView.setText(board.getBoardReplyCnt() + "");
+        replyCountView.setText(String.valueOf(board.getBoardReplyCnt()));
         postContentView.setText(board.getBoardContent());
 
         if (!TextUtils.isEmpty(board.getFirstImageUrl())) {
             postImageView.setVisibility(View.VISIBLE);
             imageCountView.setVisibility(View.VISIBLE);
             Glide.with(context).load(board.getFirstImageUrl()).into(postImageView);
-//            DetailBoardRequest request = new DetailBoardRequest(MyApplication.getContext(), String.valueOf(board.getBoardNum()));
-//            NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<BoardItemData>() {
-//                @Override
-//                public void onSuccess(NetworkRequest<BoardItemData> request, BoardItemData result) {
-//                    Board board = result.getData();
-//                    Glide.with(postImageView.getContext()).load(board.getFirstImageUrl()).into(postImageView);
-//                    imageCountView.setText("+" + board.getBoardImgCnt());
-//
-//                }
-//
-//                @Override
-//                public void onFail(NetworkRequest<BoardItemData> request, int errorCode, String errorMessage, Throwable e) {
-//
-//                }
-//            });
         } else {
             postImageView.setVisibility(View.GONE);
             imageCountView.setVisibility(View.GONE);
 
         }
-
-
-        /*if (board.getFirstImageUrl() != null) {
-            Glide.with(holder.postImageView.getContext()).load(board.getFirstImageUrl()).into(holder.postImageView);
-        } else {
-            holder.postImageView.setVisibility(View.GONE);
-        }*/
-//
-//        if (board.getFirstImageUrl() != null) {
-//            Uri imageUri = Uri.parse(board.getFirstImageUrl());
-//            try {
-//                Bitmap bitmap = MediaStore.Images.Media.getBitmap(profileImageView.getContext().getContentResolver(), imageUri);
-//                Bitmap resized = null;
-//                resized = Bitmap.createScaledBitmap(bitmap, (int) (bitmap.getWidth() * 0.3), (int) (bitmap.getHeight() * 0.3), true);
-//                profileImageView.setImageBitmap(resized);
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//
-//            postImageView.setImageURI(Uri.parse(board.getFirstImageUrl()));
-//        }
-//
-
     }
 
     public interface OnPostClickListener {

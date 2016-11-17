@@ -11,26 +11,37 @@ import com.google.android.gms.analytics.Tracker;
  */
 public class MyApplication extends Application {
     static Context context;
-    private Tracker mTracker;
+    public static GoogleAnalytics analytics;
+    public static Tracker tracker;
 
 
     @Override
     public void onCreate() {
         super.onCreate();
         context = this;
+        analytics = GoogleAnalytics.getInstance(this);
+        analytics.setLocalDispatchPeriod(1800);
+
+        tracker = analytics.newTracker("UA-87401098-1"); // Replace with actual tracker id
+        tracker.enableExceptionReporting(true);
+        tracker.enableAdvertisingIdCollection(true);
+        tracker.enableAutoActivityTracking(true);
+
     }
 
     synchronized public Tracker getDefaultTracker() {
-        if (mTracker == null) {
+        if (tracker == null) {
             GoogleAnalytics analytics = GoogleAnalytics.getInstance(this);
             // To enable debug logging use: adb shell setprop log.tag.GAv4 DEBUG
-            mTracker = analytics.newTracker(R.xml.global_tracker);
+            tracker = analytics.newTracker(R.xml.global_tracker);
         }
-        return mTracker;
+        return tracker;
     }
 
 
     public static Context getContext() {
         return context;
     }
+
+
 }

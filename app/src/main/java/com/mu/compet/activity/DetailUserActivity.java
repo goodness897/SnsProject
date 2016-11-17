@@ -37,6 +37,9 @@ public class DetailUserActivity extends BaseActivity {
     private FragmentTabHost tabHost;
     private Board board;
 
+    private static final String USER_NUM = "userNum";
+    private static final String USER_NICK = "userNick";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -44,6 +47,9 @@ public class DetailUserActivity extends BaseActivity {
 
         Intent intent = getIntent();
         board = (Board)intent.getSerializableExtra("board");
+        Bundle bundle = new Bundle();
+        bundle.putString(USER_NICK, board.getUserNick());
+        bundle.putString(USER_NUM, String.valueOf(board.getUserNum()));
 
         nickNameView = (TextView) findViewById(R.id.text_nickname);
         postCountView = (TextView) findViewById(R.id.text_post_count);
@@ -54,10 +60,10 @@ public class DetailUserActivity extends BaseActivity {
 
         tabHost.addTab(tabHost.newTabSpec("tab1")
                         .setIndicator(getTabIndicator(getContext(), R.drawable.my_list_tab_selector))
-                , UserAllPostFragment.newInstance(board.getUserNick()).getClass(), null);
+                , UserAllPostFragment.class, bundle);
         tabHost.addTab(tabHost.newTabSpec("tab2")
                         .setIndicator(getTabIndicator(getContext(), R.drawable.my_picture_tab_selector))
-                , UserOnlyPictureFragment.newInstance().getClass(), null);
+                , UserOnlyPictureFragment.class, bundle);
 
         initData(String.valueOf(board.getUserNum()));
 
@@ -95,7 +101,17 @@ public class DetailUserActivity extends BaseActivity {
         initToolBar(user.getUserId());
         if(user.getImageUrl() != null) {
             Log.d("DetailUserActivity", fileUrl);
-            Glide.with(profileImageView.getContext()).load(fileUrl).bitmapTransform(new CropCircleTransformation(this)).into(profileImageView);
+            Glide.with(profileImageView.getContext()).load(fileUrl)
+                    .placeholder(R.drawable.image_default_profile).error(R.drawable.image_default_profile)
+                    .bitmapTransform(new CropCircleTransformation(this)).into(profileImageView);
+        }
+    }
+
+    public void receiveCount(int postCount) {
+        if(postCount > 0) {
+            postCountView.setText(String.valueOf(postCount));
+        } else {
+            postCountView.setText("0");
         }
     }
     

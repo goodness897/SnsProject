@@ -1,8 +1,8 @@
 package com.mu.compet.activity;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextUtils;
@@ -14,18 +14,33 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.auth.api.signin.GoogleSignInResult;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 import com.mu.compet.R;
+import com.mu.compet.data.ResultMessage;
 import com.mu.compet.data.User;
 import com.mu.compet.data.UserItemData;
 import com.mu.compet.manager.NetworkManager;
 import com.mu.compet.manager.NetworkRequest;
 import com.mu.compet.manager.PropertyManager;
+import com.mu.compet.request.IdDuplicateCheckRequest;
 import com.mu.compet.request.LoginRequest;
 import com.mu.compet.util.ToastUtil;
 
-public class LoginActivity extends AppCompatActivity {
+public class LoginActivity extends BaseActivity implements GoogleApiClient.OnConnectionFailedListener, View.OnClickListener {
 
     private static final String TAG = LoginActivity.class.getSimpleName();
+    private static final int RC_SIGN_IN = 9001;
+
+
+    private GoogleApiClient mGoogleApiClient;
+    private ProgressDialog mProgressDialog;
 
 
     private long backKeyPressedTime = 0;
@@ -44,6 +59,20 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        getTracker();
+
+        findViewById(R.id.sign_in_button).setOnClickListener(this);
+
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .build();
+
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .enableAutoManage(this /* FragmentActivity */, this /* OnConnectionFailedListener */)
+                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+                .build();
+
+
         inputId = (EditText) findViewById(R.id.edit_id);
         inputPassword = (EditText) findViewById(R.id.edit_password);
         loginButton = (Button) findViewById(R.id.btn_login);
@@ -52,6 +81,21 @@ public class LoginActivity extends AppCompatActivity {
 
         inputId.addTextChangedListener(setIdTextWatcher());
         inputPassword.addTextChangedListener(setPasswordTextWatcher());
+
+        loginButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                loginRequest();
+            }
+        });
+
+        signUpButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(LoginActivity.this, SignUpActivity.class);
+                startActivity(intent);
+            }
+        });
 
         passwordVisibleView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -64,6 +108,119 @@ public class LoginActivity extends AppCompatActivity {
         passWord = inputPassword.getText().toString();
 
 
+    }
+
+    // [START onActivityResult]
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
+        if (requestCode == RC_SIGN_IN) {
+            GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
+            handleSignInResult(result);
+        }
+    }
+    // [END onActivityResult]
+
+    // [START handleSignInResult]
+    private void handleSignInResult(GoogleSignInResult result) {
+        Log.d(TAG, "handleSignInResult:" + result.isSuccess());
+        if (result.isSuccess()) {
+            // Signed in successfully, show authenticated UI.
+            GoogleSignInAccount acct = result.getSignInAccount();
+            Bundle bundle = new Bundle();
+            bundle.putString("email", acct.getEmail());
+            if(acct.getPhotoUrl() != null) {
+                bundle.putString("image", acct.getPhotoUrl().toString());
+            }
+            duplicateIdCheck(bundle);
+            updateUI(true);
+        } else {
+            // Signed out, show unauthenticated UI.
+            updateUI(false);
+        }
+    }
+    // [END handleSignInResult]
+
+    private void duplicateIdCheck(final Bundle bundle) {
+        String email = bundle.getString("email");
+
+        IdDuplicateCheckRequest request = new IdDuplicateCheckRequest(this, email);
+        NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<ResultMessage>() {
+            @Override
+            public void onSuccess(NetworkRequest<ResultMessage> request, ResultMessage result) {
+                Intent intent = new Intent(LoginActivity.this, SocialSignUpActivity.class);
+                intent.putExtra("bundle", bundle);
+                startActivity(intent);
+            }
+
+            @Override
+            public void onFail(NetworkRequest<ResultMessage> request, int errorCode, String errorMessage, Throwable e) {
+                Toast.makeText(LoginActivity.this, "이미 가입된 아이디입니다.", Toast.LENGTH_LONG).show();
+                signOut();
+            }
+        });
+
+    }
+
+    // [START signIn]
+    private void signIn() {
+        Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
+        startActivityForResult(signInIntent, RC_SIGN_IN);
+    }
+    // [END signIn]
+
+    // [START signOut]
+    private void signOut() {
+        Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback(
+                new ResultCallback<Status>() {
+                    @Override
+                    public void onResult(Status status) {
+                        // [START_EXCLUDE]
+                        updateUI(false);
+                        // [END_EXCLUDE]
+                    }
+                });
+    }
+    // [END signOut]
+
+    // [START revokeAccess]
+    private void revokeAccess() {
+        Auth.GoogleSignInApi.revokeAccess(mGoogleApiClient).setResultCallback(
+                new ResultCallback<Status>() {
+                    @Override
+                    public void onResult(Status status) {
+                        // [START_EXCLUDE]
+                        updateUI(false);
+                        // [END_EXCLUDE]
+                    }
+                });
+    }
+    // [END revokeAccess]
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        // An unresolvable error has occurred and Google APIs (including Sign-In) will not
+        // be available.
+        Log.d(TAG, "onConnectionFailed:" + connectionResult);
+    }
+
+    private void updateUI(boolean signedIn) {
+        if (signedIn) {
+            findViewById(R.id.sign_in_button).setVisibility(View.GONE);
+        } else {
+            findViewById(R.id.sign_in_button).setVisibility(View.VISIBLE);
+        }
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.sign_in_button:
+                signIn();
+                break;
+        }
     }
 
 
@@ -143,35 +300,18 @@ public class LoginActivity extends AppCompatActivity {
         return textWatcher;
     }
 
-    public void loginButtonClicked(View view) {
-
-        loginRequest();
-
-    }
-
-    public void signUpButtonClicked(View view) {
-        Intent intent = new Intent(LoginActivity.this, SignUpActivity.class);
-        startActivity(intent);
-    }
 
     private void loginRequest() {
         String userId = inputId.getText().toString();
         String userPass = inputPassword.getText().toString();
 
-        if(!TextUtils.isEmpty(userId) && !TextUtils.isEmpty(userPass)) {
-            LoginRequest request = new LoginRequest(this, userId, userPass);
+        if (!TextUtils.isEmpty(userId) && !TextUtils.isEmpty(userPass)) {
+            LoginRequest request = new LoginRequest(this, "user", userId, userPass);
             NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<UserItemData>() {
                 @Override
                 public void onSuccess(NetworkRequest<UserItemData> request, UserItemData result) {
-                    User user = result.getData();
-                    String userNum = String.valueOf(user.getUserNum());
-                    String userNick = user.getUserNick();
-                    Log.d(TAG, "성공 : " + result.getMessage());
-                    PropertyManager.getInstance().setUserNum(userNum);
-                    PropertyManager.getInstance().setUserNick(userNick);
-                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                    startActivity(intent);
-                    finish();
+
+                    loginSuccess(result);
                 }
 
                 @Override
@@ -184,7 +324,21 @@ public class LoginActivity extends AppCompatActivity {
             ToastUtil.show(LoginActivity.this, "값을 입력해주세요");
         }
 
+    }
 
+    private void loginSuccess(UserItemData result) {
+
+        User user = result.getData();
+        String userNum = String.valueOf(user.getUserNum());
+        String userNick = user.getUserNick();
+        String userType = user.getUserType();
+        Log.d(TAG, "성공 : " + result.getMessage());
+        PropertyManager.getInstance().setUserNum(userNum);
+        PropertyManager.getInstance().setUserNick(userNick);
+        PropertyManager.getInstance().setUserType(userType);
+        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+        startActivity(intent);
+        finish();
     }
 
     @Override
@@ -198,4 +352,6 @@ public class LoginActivity extends AppCompatActivity {
             finish();
         }
     }
+
+
 }

@@ -65,8 +65,6 @@
 
         </LinearLayout>
 
-
-
         <Button
             android:id="@+id/btn_update_my_profile"
             android:background="@color/brightCoolGray"

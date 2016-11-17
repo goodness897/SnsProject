@@ -10,6 +10,15 @@ public class User implements java.io.Serializable {
     private String userNick;
     private String userId;
     private String imageUrl;
+    private String userType;
+
+    public String getUserType() {
+        return userType;
+    }
+
+    public void setUserType(String userType) {
+        this.userType = userType;
+    }
 
     public int getUserNum() {
         return userNum;

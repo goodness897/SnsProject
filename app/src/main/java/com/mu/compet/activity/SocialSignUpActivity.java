@@ -6,9 +6,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.text.Editable;
 import android.text.TextUtils;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -16,6 +14,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.mu.compet.MyApplication;
 import com.mu.compet.R;
 import com.mu.compet.data.ResultMessage;
@@ -32,10 +31,10 @@ import com.mu.compet.util.ToastUtil;
 
 import java.io.File;
 
-public class SignUpActivity extends BaseActivity {
+public class SocialSignUpActivity extends BaseActivity {
 
+    private static final String TAG = SocialSignUpActivity.class.getSimpleName();
 
-    private static final String TAG = SignUpActivity.class.getSimpleName();
 
     private ImageView imageProfile;
     private ImageView imageCamera;
@@ -44,13 +43,16 @@ public class SignUpActivity extends BaseActivity {
     private EditText editNickName;
     private EditText editPassword;
     private EditText editPasswordCheck;
-    private Button completeButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_sign_up);
+        setContentView(R.layout.activity_social_sign_up);
         initToolBar(getString(R.string.activity_sign_up));
+
+        Button completeButton = (Button)findViewById(R.id.btn_complete);
+        Intent intent = getIntent();
+        Bundle bundle = intent.getBundleExtra("bundle");
 
         if (savedInstanceState != null) {
             contentUri = Uri.parse(savedInstanceState.getString("media_url"));
@@ -64,98 +66,52 @@ public class SignUpActivity extends BaseActivity {
         imageProfile = (ImageView) findViewById(R.id.image_profile);
         imageCamera = (ImageView) findViewById(R.id.image_camera);
 
-        editId = (EditText) findViewById(R.id.edit_id);
         editNickName = (EditText) findViewById(R.id.edit_nickname);
         editPassword = (EditText) findViewById(R.id.edit_password);
-        editPasswordCheck = (EditText) findViewById(R.id.edit_password_check);
-        editPasswordCheck.addTextChangedListener(setTextWatcher());
 
-        completeButton = (Button) findViewById(R.id.btn_complete);
-        imageCamera.bringToFront();
+        final String userId = bundle.getString("email");
+        final String userUrl = bundle.getString("image");
+        Glide.with(this).load(userUrl).placeholder(R.drawable.image_default_profile).error(R.drawable.image_default_profile)
+                .into(imageProfile);
 
+        final String userPass = userId;
 
-    }
-
-    public void addPictureClicked(View view) {
-        // 갤러리를 통한 이미지 가져오기
-//        Intent intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-//        startActivityForResult(intent, RC_GET_IMAGE);
-        checkPermission(this);
-        Intent intent = new Intent(SignUpActivity.this, AddImageActivity.class);
-        startActivityForResult(intent, RC_GET_IMAGE);
-    }
-
-    public void addCameraClicked(View view) {
-        // 카메라를 통한 이미지 가져오기
-        checkPermission(this);
-        dispatchTakePictureIntent();
-
-    }
-
-    private TextWatcher setTextWatcher() {
-
-        TextWatcher textWatcher = new TextWatcher() {
+        completeButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                String edit = s.toString();
-                if (edit.length() > 0 && editId.getText().toString().length() > 0
-                        && editNickName.getText().toString().length() > 0
-                        && editPasswordCheck.getText().toString().length() > 0) { //활성화
-                    completeButton.setBackgroundColor(getResources().getColor(R.color.mainRedColor));
-                    completeButton.setEnabled(true);
-
-                } else {
-                    completeButton.setBackgroundColor(getResources().getColor(R.color.gray));
-                    completeButton.setEnabled(false);
-                }
-            }
-        };
-        return textWatcher;
-    }
-
-    // SignUp 완료 버튼
-    public void loginCompleteSignUp(View view) {
-
-        final String userId = editId.getText().toString();
-        final String userPass = editPassword.getText().toString();
-        String userNick = editNickName.getText().toString();
+            public void onClick(View view) {
+                String userNick = editNickName.getText().toString();
 //        if(!TextUtils.isEmpty(mCurrentPhotoPath)) {
 //            userFile = new File(mCurrentPhotoPath);
 //        }
-        if (userFile != null) {
-            Log.d("SignUpActivity", "파일 : " + userFile.getAbsolutePath());
-        }
-        NewSignUpRequest request = new NewSignUpRequest(this, userId, userPass, userNick, userFile);
-        NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<ResultMessage>() {
-            @Override
-            public void onSuccess(NetworkRequest<ResultMessage> request, ResultMessage result) {
+                if (userFile != null) {
+                    Log.d(TAG, "파일 : " + userFile.getAbsolutePath());
+                }
+                Log.d(TAG, "userID : " + userId + "userPass : " + userPass + "userNick : " + userNick);
+                NewSignUpRequest request = new NewSignUpRequest(MyApplication.getContext(), userId, userPass, userNick, userFile);
+                NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<ResultMessage>() {
+                    @Override
+                    public void onSuccess(NetworkRequest<ResultMessage> request, ResultMessage result) {
 
-                Log.d("SignUpActivity", "성공 : " + result.getCode());
-                loginRequest(userId, userPass);
-            }
+                        Log.d(TAG, "회원 가입 성공 : " + result.getCode());
 
-            @Override
-            public void onFail(NetworkRequest<ResultMessage> request, int errorCode, String errorMessage, Throwable e) {
-                Log.d("SignUpActivity", "실패 : " + errorCode);
+                        loginRequest(userId, userPass);
+                    }
+                    @Override
+                    public void onFail(NetworkRequest<ResultMessage> request, int errorCode, String errorMessage, Throwable e) {
+                        Log.d(TAG, "가입 실패 : " + errorCode);
+                    }
+                });
             }
         });
+        completeButton.setEnabled(true);
+        imageCamera.bringToFront();
 
 
     }
 
     private void loginRequest(String userId, String userPass) {
 
-        LoginRequest request = new LoginRequest(this, "user", userId, userPass);
+        LoginRequest request = new LoginRequest(this, "sns", userId, userPass);
         NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<UserItemData>() {
             @Override
             public void onSuccess(NetworkRequest<UserItemData> request, UserItemData result) {
@@ -165,7 +121,7 @@ public class SignUpActivity extends BaseActivity {
 
             @Override
             public void onFail(NetworkRequest<UserItemData> request, int errorCode, String errorMessage, Throwable e) {
-                Log.d(TAG, "실패 : " + errorMessage);
+                Log.d(TAG, "로그인 실패 : " + errorMessage);
             }
         });
     }
@@ -176,13 +132,29 @@ public class SignUpActivity extends BaseActivity {
         String userNum = String.valueOf(user.getUserNum());
         String userNick = user.getUserNick();
         String userType = user.getUserType();
-        Log.d(TAG, "성공 : " + result.getMessage());
+        Log.d(TAG, "로그인 성공 : " + result.getMessage());
         PropertyManager.getInstance().setUserNum(userNum);
         PropertyManager.getInstance().setUserNick(userNick);
         PropertyManager.getInstance().setUserType(userType);
-        Intent intent = new Intent(SignUpActivity.this, MainActivity.class);
+        Intent intent = new Intent(SocialSignUpActivity.this, MainActivity.class);
         startActivity(intent);
         finish();
+    }
+
+    public void addPictureClicked(View view) {
+        // 갤러리를 통한 이미지 가져오기
+//        Intent intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+//        startActivityForResult(intent, RC_GET_IMAGE);
+        checkPermission(this);
+        Intent intent = new Intent(SocialSignUpActivity.this, AddImageActivity.class);
+        startActivityForResult(intent, RC_GET_IMAGE);
+    }
+
+    public void addCameraClicked(View view) {
+        // 카메라를 통한 이미지 가져오기
+        checkPermission(this);
+        dispatchTakePictureIntent();
+
     }
 
     public void duplicateIdCheckClicked(View view) {
@@ -194,12 +166,12 @@ public class SignUpActivity extends BaseActivity {
             NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<ResultMessage>() {
                 @Override
                 public void onSuccess(NetworkRequest<ResultMessage> request, ResultMessage result) {
-                    Toast.makeText(SignUpActivity.this, "사용 가능한 아이디입니다.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(SocialSignUpActivity.this, "사용 가능한 아이디입니다.", Toast.LENGTH_LONG).show();
                 }
 
                 @Override
                 public void onFail(NetworkRequest<ResultMessage> request, int errorCode, String errorMessage, Throwable e) {
-                    Toast.makeText(SignUpActivity.this, "이미 존재하는 아이디입니다.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(SocialSignUpActivity.this, "이미 존재하는 아이디입니다.", Toast.LENGTH_LONG).show();
 
                 }
             });
@@ -221,7 +193,6 @@ public class SignUpActivity extends BaseActivity {
                 public void onSuccess(NetworkRequest<ResultMessage> request, ResultMessage result) {
                     ToastUtil.show(MyApplication.getContext(), "사용가능한 닉네임입니다.");
                 }
-
                 @Override
                 public void onFail(NetworkRequest<ResultMessage> request, int errorCode, String errorMessage, Throwable e) {
                     ToastUtil.show(MyApplication.getContext(), "이미 존재하는 닉네임입니다.");
@@ -277,6 +248,8 @@ public class SignUpActivity extends BaseActivity {
             }
         }
     }
+
+
 
 
 }

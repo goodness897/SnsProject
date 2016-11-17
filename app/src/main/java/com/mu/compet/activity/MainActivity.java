@@ -2,22 +2,18 @@ package com.mu.compet.activity;
 
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.webkit.CookieManager;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
-import com.google.android.gms.analytics.Tracker;
 import com.mu.compet.R;
 import com.mu.compet.fragment.MainFragment;
 import com.mu.compet.manager.PropertyManager;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
-
-    private Tracker mTracker;
 
     private FrameLayout frameLayout;
     private long backKeyPressedTime = 0;
@@ -26,27 +22,12 @@ public class MainActivity extends AppCompatActivity {
     private MainFragment fragment;
 
     private FragmentManager fm;
-
-    public String getUserNick() {
-        return userNick;
-    }
-
-    public void setUserNick(String userNick) {
-        this.userNick = userNick;
-    }
-
-    public String getUserNum() {
-        return userNum;
-    }
-
-    public void setUserNum(String userNum) {
-        this.userNum = userNum;
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        getTracker();
 
         String cookie = CookieManager.getInstance().getCookie("http://192.168.6.18:9103/boards?pageNum=&lastBoardNum=");
         Log.d(TAG, "Cookie : " + cookie);

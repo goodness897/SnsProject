@@ -26,13 +26,13 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.mu.compet.R;
-import com.mu.compet.activity.MainActivity;
 import com.mu.compet.activity.SettingActivity;
 import com.mu.compet.activity.UpdateMyProfileActivity;
 import com.mu.compet.data.User;
 import com.mu.compet.data.UserItemData;
 import com.mu.compet.manager.NetworkManager;
 import com.mu.compet.manager.NetworkRequest;
+import com.mu.compet.manager.PropertyManager;
 import com.mu.compet.request.DetailUserRequest;
 
 import java.io.IOException;
@@ -54,8 +54,8 @@ public class MyPageFragment extends Fragment {
     private ImageView profileImage;
     private TextView nickNameView;
     private User user;
-    private String userNick;
-    private String userNum;
+
+    private Bundle userBundle;
 
     private static final String USER_NUM = "userNum";
     private static final String USER_NICK = "userNick";
@@ -76,18 +76,13 @@ public class MyPageFragment extends Fragment {
         return fragment;
     }
 
-    public String getUserNickName() {
-        return ((MainActivity)getActivity()).getUserNick();
-
-    }
-    public String getUserNumber() {
-        return ((MainActivity)getActivity()).getUserNum();
-    }
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d("MyPageFragment", "onCreate");
+        if(getArguments() != null) {
+            userBundle = getArguments();
+        }
 
     }
     @Override
@@ -109,10 +104,10 @@ public class MyPageFragment extends Fragment {
 
         tabHost.addTab(tabHost.newTabSpec("tab1")
                         .setIndicator(getTabIndicator(getContext(), R.drawable.my_list_tab_selector))
-                , UserAllPostFragment.class, null);
+                , UserAllPostFragment.class, userBundle);
         tabHost.addTab(tabHost.newTabSpec("tab2")
                         .setIndicator(getTabIndicator(getContext(), R.drawable.my_picture_tab_selector))
-                , UserOnlyPictureFragment.class, null);
+                , UserOnlyPictureFragment.class, userBundle);
 
 
         Button updateProfileButton = (Button) view.findViewById(R.id.btn_update_my_profile);
@@ -131,7 +126,7 @@ public class MyPageFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        profileRequest(getUserNumber());
+        profileRequest(PropertyManager.getInstance().getUserNum());
 
     }
 
@@ -142,7 +137,7 @@ public class MyPageFragment extends Fragment {
             @Override
             public void onSuccess(NetworkRequest<UserItemData> request, UserItemData result) {
                 Log.d("MyPageFragment", "성공 : " + result.getMessage());
-                user = result.getData();
+                User user = result.getData();
                 setUserData(user);
 
             }
@@ -155,9 +150,10 @@ public class MyPageFragment extends Fragment {
         });
     }
 
-    private void setUserData(final User user) {
+    private void setUserData(User user) {
         nickNameView.setText(user.getUserNick());
-        Glide.with(this).load(user.getImageUrl()).bitmapTransform(new CropCircleTransformation(getContext())).into(profileImage);
+        Glide.with(this).load(user.getImageUrl()).placeholder(R.drawable.image_default_profile).error(R.drawable.image_default_profile)
+                .bitmapTransform(new CropCircleTransformation(getContext())).into(profileImage);
 //        profileImage.setImageURI(Uri.parse(user.getImageUrl()));
 
     }

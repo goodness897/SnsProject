@@ -35,6 +35,12 @@ public class BoardAdapter extends BaseAdapter implements BoardView.OnPostClickLi
         notifyDataSetChanged();
     }
 
+    public void addItem(List<Board> items) {
+        this.items.addAll(items);
+        notifyDataSetChanged();
+
+    }
+
     public void addAll(List<Board> items) {
         if (!this.items.isEmpty()) this.items.clear();
         this.items.addAll(items);
@@ -84,6 +90,8 @@ public class BoardAdapter extends BaseAdapter implements BoardView.OnPostClickLi
 
         return view;
     }
+
+
 
 
     public interface OnAdapterUserClickListener {

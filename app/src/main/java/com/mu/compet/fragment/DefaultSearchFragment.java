@@ -28,7 +28,7 @@ public class DefaultSearchFragment extends Fragment implements View.OnClickListe
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_default_search, container, false);
 
-        String[] dummy = {"Banana", "Orange", "Cherry", "Apple", "Pineapple", "Melon", "Plum"};
+        String[] dummy = {"박무성", "은미", "이정호", "영훈", "박용범", "명화", "성협", "명지"};
         ViewGroup flowLayout = (ViewGroup) view.findViewById(R.id.flow_container);
 
         for (int i = 0; i < dummy.length; i++) {

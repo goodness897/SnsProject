@@ -10,9 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 
-import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
-import com.mu.compet.MyApplication;
 import com.mu.compet.R;
 import com.mu.compet.manager.PropertyManager;
 
@@ -54,8 +52,6 @@ public class MainFragment extends Fragment implements View.OnClickListener {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
         }
-        MyApplication application = (MyApplication) getActivity().getApplication();
-        mTracker = application.getDefaultTracker();
 
     }
 
@@ -130,12 +126,7 @@ public class MainFragment extends Fragment implements View.OnClickListener {
         }
         switch (id) {
             case R.id.btn_home:
-
                 clickFragment = HOME;
-
-                mTracker.setScreenName(clickFragment);
-                mTracker.send(new HitBuilders.ScreenViewBuilder().build());
-
                 if (view.isSelected() && fragment != null) {
                     fragment.upScroll();
                 } else {
@@ -154,7 +145,8 @@ public class MainFragment extends Fragment implements View.OnClickListener {
                 break;
             case R.id.btn_mypage:
                 clickFragment = MY_PAGE;
-                getChildFragmentManager().beginTransaction().replace(R.id.main_container, new MyPageFragment(), MY_PAGE).commit();
+                getChildFragmentManager().beginTransaction().replace(R.id.main_container, MyPageFragment.newInstance(userNick, userNum)
+                        , MY_PAGE).commit();
                 break;
 
             default:

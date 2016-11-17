@@ -7,10 +7,8 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
@@ -35,9 +33,10 @@ import java.util.GregorianCalendar;
  */
 public class SearchFragment extends Fragment {
 
-    Spinner typeSpinner;
+    private Spinner typeSpinner;
     private EditText keywordInputEditText;
     private Button cancelButton;
+    private String type;
 
     private int year, month, day;
 
@@ -57,7 +56,7 @@ public class SearchFragment extends Fragment {
         super.onResume();
         String keyword = keywordInputEditText.getText().toString();
         if (!TextUtils.isEmpty(keyword) && typeSpinner.getSelectedItem().toString().equals("닉네임")) {
-            callSearchResult(keyword);
+            callSearchResult("name", keyword);
         } else {
             callDefaultSearch();
         }
@@ -77,10 +76,10 @@ public class SearchFragment extends Fragment {
 
     }
 
-    private void callSearchResult(String keyword) {
+    private void callSearchResult(String type, String keyword) {
         FragmentManager fm = getChildFragmentManager();
         FragmentTransaction ft = fm.beginTransaction();
-        Fragment fragment = SearchResultFragment.newInstance(keyword);
+        Fragment fragment = SearchResultFragment.newInstance(type, keyword);
         ft.replace(R.id.search_container, fragment, "search");
         ft.commit();
     }
@@ -107,7 +106,7 @@ public class SearchFragment extends Fragment {
                 if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                     String keyword = keywordInputEditText.getText().toString();
                     if (!TextUtils.isEmpty(keyword)) {
-                        callSearchResult(keyword);
+                        callSearchResult(type, keyword);
                         return true;
 
                     } else {
@@ -135,6 +134,10 @@ public class SearchFragment extends Fragment {
                 switch (position) {
                     case 1:
                         new DatePickerDialog(getContext(), dateSetListener, year, month, day).show();
+                        type = typeSpinner.getSelectedItem().toString();
+                        break;
+                    case 2:
+                        type = typeSpinner.getSelectedItem().toString();
                         break;
                 }
             }
@@ -145,24 +148,6 @@ public class SearchFragment extends Fragment {
             }
         });
 
-        String type = typeSpinner.getSelectedItem().toString();
-        Log.d("SearchFragment", "타입 : " + type);
-        if ("날짜".equals(type)) {
-            keywordInputEditText.setOnTouchListener(new View.OnTouchListener() {
-                @Override
-                public boolean onTouch(View view, MotionEvent motionEvent) {
-                    switch(motionEvent.getAction()) {
-                        case MotionEvent.ACTION_DOWN:
-                            new DatePickerDialog(getContext(), dateSetListener, year, month, day).show();
-                            break;
-                        default:
-                            break;
-                    }
-                    return true;
-                }
-            });
-        }
-
         return view;
     }
 
@@ -170,14 +155,15 @@ public class SearchFragment extends Fragment {
     private DatePickerDialog.OnDateSetListener dateSetListener = new DatePickerDialog.OnDateSetListener() {
         @Override
         public void onDateSet(DatePicker datePicker, int year, int monthOfYear, int dayOfMonth) {
-            String msg = String.format("%d . %d . %d", year, monthOfYear + 1, dayOfMonth);
-            keywordInputEditText.setText(msg);
+            String keyword = String.format("%d%d%d", year, monthOfYear + 1, dayOfMonth);
+            keywordInputEditText.setText(keyword);
+            callSearchResult(type, keyword);
         }
     };
 
     public void receiveText(String text) {
 
         keywordInputEditText.setText(text);
-        callSearchResult(text);
+        callSearchResult("name", text);
     }
 }

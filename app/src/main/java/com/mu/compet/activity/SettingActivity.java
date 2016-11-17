@@ -3,6 +3,7 @@ package com.mu.compet.activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
 import android.util.Log;
@@ -12,10 +13,18 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 import com.mu.compet.R;
 import com.mu.compet.data.ResultMessage;
+import com.mu.compet.fragment.ChangePasswordDialogFragment;
 import com.mu.compet.manager.NetworkManager;
 import com.mu.compet.manager.NetworkRequest;
+import com.mu.compet.manager.PropertyManager;
 import com.mu.compet.request.LeaveUserRequest;
 import com.mu.compet.request.LogoutRequest;
 import com.mu.compet.request.PasswordCheckRequest;
@@ -23,10 +32,11 @@ import com.mu.compet.request.UpdateUserPasswordRequest;
 
 import static com.mu.compet.MyApplication.getContext;
 
-public class SettingActivity extends BaseActivity {
+public class SettingActivity extends BaseActivity implements GoogleApiClient.OnConnectionFailedListener{
 
     private static final String TAG = SettingActivity.class.getSimpleName();
 
+    private GoogleApiClient mGoogleApiClient;
 
     private AlertDialog.Builder builder;
     private EditText newPasswordView;
@@ -39,13 +49,25 @@ public class SettingActivity extends BaseActivity {
         setContentView(R.layout.activity_setting);
         initToolBar(getString(R.string.activity_setting));
 
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .build();
+
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .enableAutoManage(this /* FragmentActivity */, this /* OnConnectionFailedListener */)
+                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+                .build();
+
+
         builder = new AlertDialog.Builder(this);
         Button btn = (Button) findViewById(R.id.btn_change_password);
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                changePasswordDialog();
+                DialogFragment dialogFragment = new ChangePasswordDialogFragment();
+                dialogFragment.show(getSupportFragmentManager(), "changee");
+//                changePasswordDialog();
 
             }
         });
@@ -109,6 +131,18 @@ public class SettingActivity extends BaseActivity {
         });
     }
 
+    private void signOut() {
+        Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback(
+                new ResultCallback<Status>() {
+                    @Override
+                    public void onResult(Status status) {
+                        // [START_EXCLUDE]
+                        // [END_EXCLUDE]
+                    }
+                });
+    }
+
+
     private void changePasswordDialog() {
         LayoutInflater inflater = getLayoutInflater();
         View dialogView = inflater.inflate(R.layout.dialog_change_password, null);
@@ -134,7 +168,7 @@ public class SettingActivity extends BaseActivity {
         alertDialog.setOnShowListener(new DialogInterface.OnShowListener() {
             @Override
             public void onShow(final DialogInterface dialog) {
-                Button posButton = ((AlertDialog)dialog).getButton(AlertDialog.BUTTON_POSITIVE);
+                Button posButton = ((AlertDialog) dialog).getButton(AlertDialog.BUTTON_POSITIVE);
 
                 posButton.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -198,7 +232,7 @@ public class SettingActivity extends BaseActivity {
         NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<ResultMessage>() {
             @Override
             public void onSuccess(NetworkRequest<ResultMessage> request, ResultMessage result) {
-                Log.d("SettingActivity", "성공 : " + result.getMessage());
+                Log.d(TAG, "성공 : " + result.getMessage());
                 Intent intent = new Intent(SettingActivity.this, LoginActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(intent);
@@ -209,7 +243,7 @@ public class SettingActivity extends BaseActivity {
             @Override
             public void onFail(NetworkRequest<ResultMessage> request, int errorCode, String errorMessage, Throwable e) {
                 // 실패
-                Log.d("SettingActivity", "실패 : " + errorMessage);
+                Log.d(TAG, "실패 : " + errorMessage);
 
             }
         });
@@ -222,17 +256,32 @@ public class SettingActivity extends BaseActivity {
             @Override
             public void onSuccess(NetworkRequest<ResultMessage> request, ResultMessage result) {
                 // 성공
-                Log.d("SettingActivity", "성공 : " + result.getMessage());
+                Log.d(TAG, "성공 : " + result.getMessage());
+                PropertyManager.getInstance().setUserNum("");
+                PropertyManager.getInstance().setUserNick("");
+                PropertyManager.getInstance().setPassword("");
+                PropertyManager.getInstance().setUserType("");
+
+                Intent intent = new Intent(SettingActivity.this, LoginActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
 
             }
 
             @Override
             public void onFail(NetworkRequest<ResultMessage> request, int errorCode, String errorMessage, Throwable e) {
                 // 실패
-                Log.d("SettingActivity", "실패 : " + errorMessage);
+                Log.d(TAG, "실패 : " + errorMessage);
 
             }
         });
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        // An unresolvable error has occurred and Google APIs (including Sign-In) will not
+        // be available.
+        Log.d(TAG, "onConnectionFailed:" + connectionResult);
     }
 }
 

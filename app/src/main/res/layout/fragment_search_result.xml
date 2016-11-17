@@ -5,6 +5,13 @@
     android:background="@color/brightCoolGray"
     tools:context="com.mu.compet.fragment.SearchResultFragment">
 
+    <TextView
+        android:id="@+id/text_result"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="검색 결과가 존재하지 않습니다."
+        android:layout_gravity="center" />
+
     <ListView
         android:layout_marginTop="8dp"
         android:divider="#00000000"

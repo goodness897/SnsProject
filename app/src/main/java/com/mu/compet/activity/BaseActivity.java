@@ -29,6 +29,8 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.analytics.Tracker;
+import com.mu.compet.MyApplication;
 import com.mu.compet.R;
 
 import java.io.File;
@@ -56,6 +58,8 @@ public class BaseActivity extends AppCompatActivity {
     protected Uri contentUri;
     protected File userFile;
 
+    protected Tracker mTracker;
+
     public void initToolBar(final String title) {
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.main_toolbar);
@@ -70,12 +74,16 @@ public class BaseActivity extends AppCompatActivity {
                 if(title.equals(getString(R.string.activity_new_write))){
                     cancelAlert();
                 } else {
-
                     finish();
                 }
 
             }
         });
+    }
+
+    protected void getTracker() {
+        MyApplication application = (MyApplication) getApplication();
+        mTracker = application.getDefaultTracker();
     }
 
     private void cancelAlert() {

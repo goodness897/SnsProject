@@ -1,6 +1,7 @@
 package com.mu.compet;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -59,6 +60,7 @@ public class MyPageGridAdapter extends BaseAdapter {
         if (convertView == null)
             convertView = inflater.inflate(layout, null);
         ImageView iv = (ImageView) convertView.findViewById(R.id.image);
+        Log.d("image", "path : " + items.get(position));
         Glide.with(parent.getContext()).load(items.get(position)).into(iv);
 
 

@@ -3,27 +3,23 @@ package com.mu.compet.activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.PopupWindow;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.mu.compet.R;
 import com.mu.compet.data.ResultMessage;
 import com.mu.compet.data.User;
@@ -35,10 +31,11 @@ import com.mu.compet.request.UpdateProfileRequest;
 
 import java.io.File;
 
+import jp.wasabeef.glide.transformations.CropCircleTransformation;
+
 public class UpdateMyProfileActivity extends BaseActivity {
 
     private static final String TAG = UpdateMyProfileActivity.class.getSimpleName();
-
 
 
     private EditText nickNameEditText;
@@ -73,6 +70,8 @@ public class UpdateMyProfileActivity extends BaseActivity {
 
         changeImageText = (TextView) findViewById(R.id.text_change_image);
         profileView = (ImageView) findViewById(R.id.image_my_profile);
+        Glide.with(this).load(user.getImageUrl()).placeholder(R.drawable.image_default_profile).error(R.drawable.image_default_profile)
+                .bitmapTransform(new CropCircleTransformation(this)).into(profileView);
 
         if (savedInstanceState != null) {
             contentUri = Uri.parse(savedInstanceState.getString("media_url"));
@@ -83,44 +82,14 @@ public class UpdateMyProfileActivity extends BaseActivity {
             path.mkdirs();
         }
 
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
         changeImageText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                View view = getLayoutInflater().inflate(R.layout.fragment_select_image_dialog, null);
-                PopupWindow popup = new PopupWindow(view, Toolbar.LayoutParams.WRAP_CONTENT, Toolbar.LayoutParams.WRAP_CONTENT);
-                popup.setContentView(view);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    popup.setWindowLayoutType(WindowManager.LayoutParams.TYPE_APPLICATION_SUB_PANEL);
-                }
-                popup.setTouchable(true);
-                popup.setOutsideTouchable(true);
-                popup.setFocusable(true);
-                popup.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-                popup.showAtLocation(view, Gravity.CENTER, 0, 300);
 
-                TextView galleryText = (TextView) view.findViewById(R.id.text_gallery);
-                TextView cameraText = (TextView) view.findViewById(R.id.text_camera);
+                showAlertDialog();
 
-
-                galleryText.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-
-                        checkPermission(v.getContext());
-                        Intent intent = new Intent(UpdateMyProfileActivity.this, AddImageActivity.class);
-                        startActivityForResult(intent, RC_GET_IMAGE);
-
-                    }
-                });
-
-                cameraText.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        checkPermission(v.getContext());
-                        dispatchTakePictureIntent();
-                    }
-                });
 //                dialogFragment = new SelectImageCheckDialogFragment();
 //                dialogFragment.show(getSupportFragmentManager(), "select image");
             }
@@ -134,6 +103,39 @@ public class UpdateMyProfileActivity extends BaseActivity {
             }
         });
     }
+
+    public void showAlertDialog()
+    {
+        LayoutInflater inflater = getLayoutInflater();
+        View view = inflater.inflate(R.layout.fragment_select_image_dialog, null);
+        TextView galleryText = (TextView) view.findViewById(R.id.text_gallery);
+        TextView cameraText = (TextView) view.findViewById(R.id.text_camera);
+        final AlertDialog alertDialog = new AlertDialog.Builder(this).setView(view).setCancelable(true).create();
+        alertDialog.show();
+
+        galleryText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                checkPermission(v.getContext());
+                Intent intent = new Intent(UpdateMyProfileActivity.this, AddImageActivity.class);
+                startActivityForResult(intent, RC_GET_IMAGE);
+                alertDialog.dismiss();
+
+            }
+        });
+
+        cameraText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                checkPermission(v.getContext());
+                dispatchTakePictureIntent();
+                alertDialog.dismiss();
+
+            }
+        });
+    }
+
 
     public void initToolBar(String title) {
 
@@ -198,8 +200,6 @@ public class UpdateMyProfileActivity extends BaseActivity {
             if (userFile != null) {
                 Log.d(TAG, "파일 : " + userFile.getAbsolutePath());
             }
-
-
             UpdateProfileRequest request = new UpdateProfileRequest(this, userNick, userFile);
             NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<ResultMessage>() {
                 @Override
@@ -264,9 +264,9 @@ public class UpdateMyProfileActivity extends BaseActivity {
                         Bitmap bitmap = (Bitmap) extras.get("data");
                         Bitmap circleBitmap = circleImage(bitmap);
                         profileView.setImageBitmap(circleBitmap);
+                        userFile = new File(contentUri.getPath());
 
                         if (mCurrentPhotoPath != null) {
-                            userFile = new File(mCurrentPhotoPath);
                             if (userFile.exists()) {
                                 userFile.delete();
                             }

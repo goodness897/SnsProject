@@ -1,13 +1,11 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:gravity="center_horizontal"
-    android:background="@color/transparentCoolGray"
-    android:orientation="vertical"
-    tools:context="com.mu.compet.fragment.SelectImageCheckDialogFragment">
+    android:orientation="vertical">
 
     <TextView
+        android:drawableLeft="@drawable/ic_camera"
         android:id="@+id/text_gallery"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -17,11 +15,13 @@
         android:textSize="16sp" />
 
     <TextView
+        android:drawableLeft="@drawable/ic_add_picture"
         android:id="@+id/text_camera"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="32dp"
         android:text="카메라로 사진 찍기"
         android:textColor="@color/textBlack"
-        android:textSize="16sp" />
+        android:textSize="16sp"
+        android:gravity="center" />
 </LinearLayout>
