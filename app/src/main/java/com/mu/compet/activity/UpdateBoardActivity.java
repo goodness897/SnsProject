@@ -54,16 +54,17 @@ public class UpdateBoardActivity extends BaseActivity {
         int id = item.getItemId();
         if (id == R.id.action_complete) {
             UpdateBoardRequest request = new UpdateBoardRequest(this, boardNum, boardContent, files, delFiles);
-            NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<ResultMessage>() {
+            NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<ResultMessage<String>>() {
                 @Override
-                public void onSuccess(NetworkRequest<ResultMessage> request, ResultMessage result) {
+                public void onSuccess(NetworkRequest<ResultMessage<String>> request, ResultMessage<String> result) {
                     Log.d(TAG, result.getMessage());
                     finish();
                 }
 
                 @Override
-                public void onFail(NetworkRequest<ResultMessage> request, int errorCode, String errorMessage, Throwable e) {
+                public void onFail(NetworkRequest<ResultMessage<String>> request, int errorCode, String errorMessage, Throwable e) {
                     Log.d(TAG, errorMessage);
+
                 }
             });
 

@@ -15,10 +15,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewSwitcher;
 
+import com.bumptech.glide.Glide;
 import com.mu.compet.R;
 import com.mu.compet.manager.NetworkManager;
 import com.mu.compet.manager.NetworkRequest;
 import com.mu.compet.manager.PropertyManager;
+import com.mu.compet.request.AbstractRequest;
 import com.mu.compet.request.DeleteReplyRequest;
 import com.mu.compet.request.UpdateReplyRequest;
 import com.mu.compet.util.StringUtil;
@@ -99,7 +101,12 @@ public class ReplyView extends FrameLayout {
     }
 
     public void setReplyTextView(final Reply reply) {
-//        profileImageView.setImageDrawable(rep());
+
+        String imgPath = "http://" + AbstractRequest.getHOST() + ":"
+                + AbstractRequest.getHttpPort() + "/user/" + reply.getUserNum() + "/image";
+
+        Glide.with(getContext()).load(imgPath).placeholder(R.drawable.image_default_profile)
+                .error(R.drawable.image_default_profile).into(profileImageView);
         final AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
 
         if (reply != null) {

@@ -42,7 +42,6 @@ public class IdDuplicateCheckRequest extends AbstractRequest<ResultMessage> {
 
     }
 
-
     @Override
     protected Type getType() {
         return new TypeToken<ResultMessage>() {

@@ -105,6 +105,7 @@ public class SearchFragment extends Fragment {
 
                 if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                     String keyword = keywordInputEditText.getText().toString();
+                    type = typeSpinner.getSelectedItem().toString();
                     if (!TextUtils.isEmpty(keyword)) {
                         callSearchResult(type, keyword);
                         return true;

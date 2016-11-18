@@ -27,7 +27,7 @@ import com.mu.compet.request.LoginRequest;
 
 import static com.mu.compet.R.id.imageView;
 
-public class SplashActivity extends BaseActivity implements GoogleApiClient.OnConnectionFailedListener{
+public class SplashActivity extends BaseActivity implements GoogleApiClient.OnConnectionFailedListener {
 
     private static final String TAG = SplashActivity.class.getSimpleName();
 
@@ -75,7 +75,7 @@ public class SplashActivity extends BaseActivity implements GoogleApiClient.OnCo
             GoogleSignInResult result = opr.get();
             String email = result.getSignInAccount().getEmail();
 //            handleSignInResult(result);
-            LoginRequest request = new LoginRequest(this, "sns", email, email);
+            LoginRequest request = new LoginRequest(this, SNS, email, email);
             NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<UserItemData>() {
                 @Override
                 public void onSuccess(NetworkRequest<UserItemData> request, UserItemData result) {
@@ -84,26 +84,14 @@ public class SplashActivity extends BaseActivity implements GoogleApiClient.OnCo
 
                 @Override
                 public void onFail(NetworkRequest<UserItemData> request, int errorCode, String errorMessage, Throwable e) {
-                    mHandler.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            startActivity(new Intent(SplashActivity.this, LoginActivity.class));
-                            finish();
-                        }
-                    }, 1000);
+                    moveLoginActivity();
                 }
             });
         } else {
             // If the user has not previously signed in on this device or the sign-in has expired,
             // this asynchronous branch will attempt to sign in the user silently.  Cross-device
             // single sign-on will occur in this branch.
-            mHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    startActivity(new Intent(SplashActivity.this, LoginActivity.class));
-                    finish();
-                }
-            }, 1000);
+            moveLoginActivity();
         }
 
     }
@@ -134,6 +122,15 @@ public class SplashActivity extends BaseActivity implements GoogleApiClient.OnCo
             }
         }, 1000);
     }
+    private void moveMainActivity() {
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                startActivity(new Intent(SplashActivity.this, MainActivity.class));
+                finish();
+            }
+        }, 1000);
+    }
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
@@ -153,12 +150,6 @@ public class SplashActivity extends BaseActivity implements GoogleApiClient.OnCo
         PropertyManager.getInstance().setUserNick(userNick);
         PropertyManager.getInstance().setUserType(userType);
 
-        mHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                startActivity(new Intent(SplashActivity.this, MainActivity.class));
-                finish();
-            }
-        }, 1000);
+        moveMainActivity();
     }
 }

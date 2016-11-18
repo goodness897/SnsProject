@@ -135,7 +135,7 @@ public class SignUpActivity extends BaseActivity {
         if (userFile != null) {
             Log.d("SignUpActivity", "파일 : " + userFile.getAbsolutePath());
         }
-        NewSignUpRequest request = new NewSignUpRequest(this, userId, userPass, userNick, userFile);
+        NewSignUpRequest request = new NewSignUpRequest(this, USER, userId, userPass, userNick, userFile);
         NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<ResultMessage>() {
             @Override
             public void onSuccess(NetworkRequest<ResultMessage> request, ResultMessage result) {
@@ -155,7 +155,7 @@ public class SignUpActivity extends BaseActivity {
 
     private void loginRequest(String userId, String userPass) {
 
-        LoginRequest request = new LoginRequest(this, "user", userId, userPass);
+        LoginRequest request = new LoginRequest(this, USER, userId, userPass);
         NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<UserItemData>() {
             @Override
             public void onSuccess(NetworkRequest<UserItemData> request, UserItemData result) {

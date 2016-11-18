@@ -40,8 +40,6 @@ public class NickNameDuplicateCheckRequest extends AbstractRequest<ResultMessage
         Log.i("url", mRequest.url().toString());
 
     }
-
-
     @Override
     protected Type getType() {
         return new TypeToken<ResultMessage>() {

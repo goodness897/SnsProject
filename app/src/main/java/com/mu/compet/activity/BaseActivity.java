@@ -54,6 +54,9 @@ public class BaseActivity extends AppCompatActivity {
     protected static final int RC_CAMERA = 2;
     protected static final int RC_CROP = 3;
 
+    protected static final String USER = "user";
+    protected static final String SNS = "sns";
+
     protected String mCurrentPhotoPath;
     protected Uri contentUri;
     protected File userFile;

@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AbsListView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -40,9 +41,20 @@ import java.util.List;
 
 import jp.wasabeef.glide.transformations.CropCircleTransformation;
 
-public class DetailBoardActivity extends BaseActivity {
+import static com.mu.compet.MyApplication.getContext;
+
+public class DetailBoardActivity extends BaseActivity implements AbsListView.OnScrollListener {
 
     private static final String TAG = DetailBoardActivity.class.getSimpleName();
+
+    int loadPage = 5;
+    int lastReplyNum = 0;
+    private boolean mLockListView;
+
+    private View footerView;
+
+
+
     private ListView listView;
     private ReplyAdapter mAdapter;
     private EditText replyEdit;
@@ -71,6 +83,18 @@ public class DetailBoardActivity extends BaseActivity {
         Intent intent = getIntent();
         board = (Board) intent.getSerializableExtra("board");
         listView = (ListView) findViewById(R.id.listView);
+        listView.setOnScrollListener(this);
+        footerView = LayoutInflater.from(getContext()).inflate(R.layout.view_reply_footer, null);
+        footerView.setVisibility(View.GONE);
+        listView.addFooterView(footerView);
+
+        footerView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                addReply();
+            }
+        });
+
         Log.d("DetailBoardActivity", "세션 유저 넘버 : " + PropertyManager.getInstance().getUserNum() + "보드 유저 넘버 : " + board.getUserNum());
 
         replyEdit = (EditText) findViewById(R.id.edit_content);
@@ -115,7 +139,7 @@ public class DetailBoardActivity extends BaseActivity {
         listView.addHeaderView(headerView);
         boardNum = String.valueOf(board.getBoardNum());
         mAdapter = new ReplyAdapter(boardNum);
-        mAdapter.setOnAdapterReplyListener( new ReplyAdapter.OnAdapterReplyClickListener() {
+        mAdapter.setOnAdapterReplyListener(new ReplyAdapter.OnAdapterReplyClickListener() {
             @Override
             public void onAdapterReplyClick(int code) {
                 listReplyRequest();
@@ -169,25 +193,61 @@ public class DetailBoardActivity extends BaseActivity {
 
     public void listReplyRequest() {
 
+        mLockListView = true;
+
         String boardNum = String.valueOf(board.getBoardNum());
-        String pageNum = "";
-        String lastReplyNum = "";
-        ListReplyRequest request = new ListReplyRequest(this, boardNum, pageNum, lastReplyNum);
+
+        ListReplyRequest request = new ListReplyRequest(this, boardNum, String.valueOf(loadPage), "");
         NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<ListData<Reply>>() {
             @Override
             public void onSuccess(NetworkRequest<ListData<Reply>> request, ListData<Reply> result) {
 
-                Log.d("DetailBoardActivity", "성공 : " + result.getMessage());
-                mAdapter.addAll(result.getData());
+                if (result.getData() != null && result.getData().size() > 0) {
+
+                    Log.d("DetailBoardActivity", "성공 : " + result.getMessage());
+                    mAdapter.addAll(result.getData());
+                    lastReplyNum = result.getData().get(result.getData().size() - 1).getReplyNum();
+                    mLockListView = false;
+
+
+                }
 
             }
 
             @Override
             public void onFail(NetworkRequest<ListData<Reply>> request, int errorCode, String errorMessage, Throwable e) {
                 Log.d("DetailBoardActivity", "실패 : " + errorMessage);
+                mLockListView = false;
 
             }
         });
+    }
+
+    private void addReply() {
+
+        mLockListView = true;
+        ListReplyRequest request = new ListReplyRequest(this, boardNum, String.valueOf(loadPage), String.valueOf(lastReplyNum));
+        NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<ListData<Reply>>() {
+            @Override
+            public void onSuccess(NetworkRequest<ListData<Reply>> request, ListData<Reply> result) {
+
+                if (result.getData() != null && result.getData().size() > 0) {
+                    Log.d(TAG, "성공 : " + result.getMessage());
+                    mAdapter.addItem(result.getData());
+                    lastReplyNum = result.getData().get(result.getData().size() - 1).getReplyNum();
+                    mLockListView = false;
+                    footerView.setVisibility(View.GONE);
+
+                }
+            }
+            @Override
+            public void onFail(NetworkRequest<ListData<Reply>> request, int errorCode, String errorMessage, Throwable e) {
+                Log.d(TAG, "실패 : " + errorMessage);
+                mLockListView = true;
+                footerView.setVisibility(View.GONE);
+            }
+        });
+
     }
 
     private void setHeaderView(Board board) {
@@ -258,8 +318,6 @@ public class DetailBoardActivity extends BaseActivity {
     }
 
 
-
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
@@ -305,4 +363,21 @@ public class DetailBoardActivity extends BaseActivity {
     }
 
 
+    @Override
+    public void onScrollStateChanged(AbsListView absListView, int scrollState) {
+
+    }
+
+    @Override
+    public void onScroll(AbsListView view, int firstVisibleItem,
+                         int visibleItemCount, int totalItemCount) {
+        int count = totalItemCount - visibleItemCount;
+
+        if(firstVisibleItem >= count && totalItemCount != 0 && !mLockListView) {
+            footerView.setVisibility(View.VISIBLE);
+        } else {
+            footerView.setVisibility(View.GONE);
+        }
+
+    }
 }

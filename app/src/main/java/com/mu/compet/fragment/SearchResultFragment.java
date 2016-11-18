@@ -32,7 +32,8 @@ public class SearchResultFragment extends Fragment {
 
     private ListView listView;
     private BoardAdapter mAdapter;
-    private String keyWord;
+    private String keyword;
+    private String type;
     private TextView resultView;
 
 
@@ -56,9 +57,8 @@ public class SearchResultFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            String keyword = getArguments().getString("keyword");
-            String type = getArguments().getString("searchType");
-            performSearch(type, keyword);
+            keyword = getArguments().getString("keyword");
+            type = getArguments().getString("searchType");
 
         }
     }
@@ -70,6 +70,8 @@ public class SearchResultFragment extends Fragment {
 
 
         View view = inflater.inflate(R.layout.fragment_search_result, container, false);
+        performSearch(type, keyword);
+
         listView = (ListView) view.findViewById(R.id.listView);
         resultView = (TextView) view.findViewById(R.id.text_result);
         mAdapter = new BoardAdapter(0);

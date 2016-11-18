@@ -23,6 +23,13 @@ public class ReplyAdapter extends BaseAdapter implements ReplyView.OnReplySucces
         notifyDataSetChanged();
     }
 
+    public void addItem(List<Reply> replyList) {
+
+        items.addAll(replyList);
+        notifyDataSetChanged();
+    }
+
+
     public void addAll(List<Reply> replyList) {
         if (!items.isEmpty()) items.clear();
         items.addAll(replyList);

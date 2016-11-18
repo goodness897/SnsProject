@@ -4,9 +4,9 @@ package com.mu.compet.data;
 import java.io.Serializable;
 
 //메세지 처리 데이터 클래스
-public class ResultMessage implements Serializable {
+public class ResultMessage<T> implements Serializable {
 
-    private String message;
+    private T message;
     private int code;
 
     public int getCode() {
@@ -17,11 +17,11 @@ public class ResultMessage implements Serializable {
         this.code = code;
     }
 
-    public String getMessage() {
+    public T getMessage() {
         return this.message;
     }
 
-    public void setMessage(String message) {
+    public void setMessage(T message) {
         this.message = message;
     }
 }

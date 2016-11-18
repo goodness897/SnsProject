@@ -18,7 +18,7 @@ import okhttp3.RequestBody;
 /**
  * Created by jeon on 2016-09-04.
  */
-public class UpdateBoardRequest extends AbstractRequest<ResultMessage> {
+public class UpdateBoardRequest extends AbstractRequest<ResultMessage<String>> {
 
     Request mRequest;
 

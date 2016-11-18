@@ -3,12 +3,10 @@ package com.mu.compet.request;
 import android.content.Context;
 import android.util.Log;
 
-import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.mu.compet.data.ResultMessage;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Type;
 
 import okhttp3.HttpUrl;
@@ -16,7 +14,6 @@ import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.Request;
 import okhttp3.RequestBody;
-import okhttp3.ResponseBody;
 
 /**
  * Created by Mu on 2016-11-01.
@@ -31,10 +28,11 @@ public class NewSignUpRequest extends AbstractRequest<ResultMessage> {
     private final static String USER_PASS = "userPass";
     private final static String USER_NICK = "userNick";
     private final static String USER_FILE = "userFile";
+    private final static String USER_TYPE = "userType";
 
     MediaType jpeg = MediaType.parse("image/jpeg");
 
-    public NewSignUpRequest(Context context, String userId, String userPass, String userNick, File userFile) {
+    public NewSignUpRequest(Context context, String userType, String userId, String userPass, String userNick, File userFile) {
         HttpUrl url = getBaseUrlBuilder()
                 .addPathSegment(USER)
                 .build();
@@ -42,6 +40,7 @@ public class NewSignUpRequest extends AbstractRequest<ResultMessage> {
        MultipartBody.Builder body = new MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
                 .addFormDataPart(USER_ID, userId)
+                .addFormDataPart(USER_TYPE, userType)
                 .addFormDataPart(USER_PASS, userPass)
                 .addFormDataPart(USER_NICK, userNick);
 
@@ -65,17 +64,6 @@ public class NewSignUpRequest extends AbstractRequest<ResultMessage> {
         Log.i("url", url.toString());
 
     }
-
-    @Override
-    protected ResultMessage parse(ResponseBody body) throws IOException {
-        String text = body.string();
-        Gson gson = new Gson();
-        ResultMessage temp = gson.fromJson(text, getType());
-        Log.i("result", text);
-        return temp;
-    }
-
-
 
     @Override
     protected Type getType() {

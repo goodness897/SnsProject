@@ -82,13 +82,13 @@ public class DetailUserActivity extends BaseActivity {
         NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<UserItemData>() {
             @Override
             public void onSuccess(NetworkRequest<UserItemData> request, UserItemData result) {
-                Log.d("DetailUserActivity", "성공 : " + result.getMessage());
+                Log.d(TAG, "유저 상세 조회 성공 : " + result.getMessage());
                 User user = result.getData();
                 setUserData(user);
             }
             @Override
             public void onFail(NetworkRequest<UserItemData> request, int errorCode, String errorMessage, Throwable e) {
-                Log.d("DetailUserActivity", "성공 : " + errorMessage);
+                Log.d(TAG, "유저 상세 조회 실패 : " + errorMessage);
 
             }
         });
@@ -96,12 +96,12 @@ public class DetailUserActivity extends BaseActivity {
 
     private void setUserData(User user) {
         String fileUrl = "http://" + AbstractRequest.getHOST() +":" + AbstractRequest.getHttpPort()
-                + "/user/" + board.getUserNum() + "/image";
+                + "/user/" + user.getUserNum() + "/image";
         nickNameView.setText(user.getUserNick());
         initToolBar(user.getUserId());
         if(user.getImageUrl() != null) {
-            Log.d("DetailUserActivity", fileUrl);
-            Glide.with(profileImageView.getContext()).load(fileUrl)
+            Log.d(TAG, fileUrl);
+            Glide.with(this).load(fileUrl)
                     .placeholder(R.drawable.image_default_profile).error(R.drawable.image_default_profile)
                     .bitmapTransform(new CropCircleTransformation(this)).into(profileImageView);
         }

@@ -101,7 +101,7 @@
         android:layout_marginTop="32dp"
         android:layout_marginBottom="16dp"
         android:enabled="false"
-        android:background="@drawable/btn_login_selector"
+        android:background="@color/secondSubBlueColor"
         android:text="@string/btn_complete_sign_up"
         android:textColor="@android:color/white" />
 

@@ -49,11 +49,9 @@ public class StringUtil {
 
             if (duration / (60 * 60 * 24) == 0) {
                 duration = duration / (60 * 60);
-                duration = duration * -1;
                 calDate = duration + "시간 전";
             } else {
                 duration = duration / (60 * 60 * 24);
-                duration = duration * -1;
                 calDate = duration + "일 전";
 
             }

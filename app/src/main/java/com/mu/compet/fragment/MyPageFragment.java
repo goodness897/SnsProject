@@ -3,13 +3,6 @@ package com.mu.compet.fragment;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffXfermode;
-import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTabHost;
@@ -34,11 +27,6 @@ import com.mu.compet.manager.NetworkManager;
 import com.mu.compet.manager.NetworkRequest;
 import com.mu.compet.manager.PropertyManager;
 import com.mu.compet.request.DetailUserRequest;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 
 import jp.wasabeef.glide.transformations.CropCircleTransformation;
 
@@ -95,6 +83,7 @@ public class MyPageFragment extends Fragment {
         initToolBar(getString(R.string.app_name), view);
 
         profileImage = (ImageView) view.findViewById(R.id.image_profile);
+        profileImage.setImageDrawable(null);
         nickNameView = (TextView) view.findViewById(R.id.text_nickname);
 
 
@@ -104,10 +93,10 @@ public class MyPageFragment extends Fragment {
 
         tabHost.addTab(tabHost.newTabSpec("tab1")
                         .setIndicator(getTabIndicator(getContext(), R.drawable.my_list_tab_selector))
-                , UserAllPostFragment.class, userBundle);
+                , UserAllPostFragment.class, null);
         tabHost.addTab(tabHost.newTabSpec("tab2")
                         .setIndicator(getTabIndicator(getContext(), R.drawable.my_picture_tab_selector))
-                , UserOnlyPictureFragment.class, userBundle);
+                , UserOnlyPictureFragment.class, null);
 
 
         Button updateProfileButton = (Button) view.findViewById(R.id.btn_update_my_profile);
@@ -136,15 +125,16 @@ public class MyPageFragment extends Fragment {
         NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<UserItemData>() {
             @Override
             public void onSuccess(NetworkRequest<UserItemData> request, UserItemData result) {
-                Log.d("MyPageFragment", "성공 : " + result.getMessage());
-                User user = result.getData();
+                Log.d("MyPageFragment", "회원 조회 성공 : " + result.getMessage());
+
+                user = result.getData();
                 setUserData(user);
 
             }
 
             @Override
             public void onFail(NetworkRequest<UserItemData> request, int errorCode, String errorMessage, Throwable e) {
-                Log.d("MyPageFragment", "실패 : " + errorMessage);
+                Log.d("MyPageFragment", "회원 조회 실패 : " + errorMessage);
 
             }
         });
@@ -157,46 +147,6 @@ public class MyPageFragment extends Fragment {
 //        profileImage.setImageURI(Uri.parse(user.getImageUrl()));
 
     }
-
-    public Bitmap getBitmapFromURL(String src) {
-        HttpURLConnection connection = null;
-        try {
-            URL url = new URL(src);
-            connection = (HttpURLConnection) url.openConnection();
-            connection.setDoInput(true);
-            connection.connect();
-            InputStream input = connection.getInputStream();
-            Bitmap myBitmap = BitmapFactory.decodeStream(input);
-            return myBitmap;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }finally{
-            if(connection!=null)connection.disconnect();
-        }
-    }
-
-    private Bitmap circleImage(Bitmap bitmapimg) {
-
-        Bitmap output = Bitmap.createBitmap(bitmapimg.getWidth(),
-                bitmapimg.getHeight(), Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(output);
-
-        final int color = 0xff424242;
-        final Paint paint = new Paint();
-        final Rect rect = new Rect(0, 0, bitmapimg.getWidth(),
-                bitmapimg.getHeight());
-
-        paint.setAntiAlias(true);
-        canvas.drawARGB(0, 0, 0, 0);
-        paint.setColor(color);
-        canvas.drawCircle(bitmapimg.getWidth() / 2,
-                bitmapimg.getHeight() / 2, bitmapimg.getWidth() / 2, paint);
-        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
-        canvas.drawBitmap(bitmapimg, rect, rect, paint);
-        return output;
-    }
-
     private View getTabIndicator(Context context, int res) {
         View view = LayoutInflater.from(context).inflate(R.layout.tab_layout, null);
         ImageView imageView = (ImageView) view.findViewById(R.id.imageView);

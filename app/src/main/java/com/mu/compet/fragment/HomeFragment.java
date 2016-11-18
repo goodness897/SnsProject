@@ -69,10 +69,9 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
 
         listView = (ListView) view.findViewById(R.id.listView);
         footerView = LayoutInflater.from(getContext()).inflate(R.layout.view_footer, null);
-
         footerView.setVisibility(View.GONE);
-
         listView.addFooterView(footerView);
+
         listView.setOnScrollListener(this);
         mAdapter = new BoardAdapter(0);
         mAdapter.setOnAdapterUserClickListener(new BoardAdapter.OnAdapterUserClickListener() {
@@ -133,9 +132,8 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
             @Override
             public void onSuccess(NetworkRequest<ListData<Board>> request, ListData<Board> result) {
 
-                if (result.getData().size() > 0) {
+                if (result != null && result.getData().size() > 0) {
                     Log.d("HomeFragment", "성공 : " + result.getMessage() + " 유저 : " + result.getData().get(0).getUserNick());
-                    Log.d("HomeFragment", "성공 : " + result.getMessage() + " 유저 : " + result.getData().get(0).getFirstImageUrl());
                     mAdapter.addAll(result.getData());
                     lastBoardNum = result.getData().get(result.getData().size()-1).getBoardNum();
                     swipeRefreshLayout.setRefreshing(false);
@@ -159,15 +157,12 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
     private void addData() {
 
         footerView.setVisibility(View.VISIBLE);
-        swipeRefreshLayout.setRefreshing(true);
         mLockListView = true;
         ListBoardRequest request = new ListBoardRequest(getContext(), String.valueOf(loadPage), String.valueOf(lastBoardNum));
 
         NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<ListData<Board>>() {
             @Override
             public void onSuccess(NetworkRequest<ListData<Board>> request, ListData<Board> result) {
-
-                swipeRefreshLayout.setRefreshing(false);
 
                 if (result.getData().size() > 0) {
                     Log.d("HomeFragment", "목록 조회 성공 : " + result.getMessage() + " 유저 : " + result.getData().get(0).getUserNick());
@@ -181,7 +176,6 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
 
             @Override
             public void onFail(NetworkRequest<ListData<Board>> request, int errorCode, String errorMessage, Throwable e) {
-                swipeRefreshLayout.setRefreshing(false);
                 mLockListView = true;
                 Log.d("HomeFragment", "목록 조회 실패 : " + errorMessage);
                 footerView.setVisibility(View.GONE);
@@ -202,12 +196,11 @@ public class HomeFragment extends Fragment implements SwipeRefreshLayout.OnRefre
         initData();
     }
 
+
     @Override
     public void onScrollStateChanged(AbsListView absListView, int scrollState) {
 
     }
-
-    int count = 0;
 
     @Override
     public void onScroll(AbsListView view, int firstVisibleItem,

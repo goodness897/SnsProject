@@ -16,6 +16,7 @@ import com.mu.compet.data.FileData;
 import com.mu.compet.data.ListData;
 import com.mu.compet.manager.NetworkManager;
 import com.mu.compet.manager.NetworkRequest;
+import com.mu.compet.manager.PropertyManager;
 import com.mu.compet.request.ListFileRequest;
 import com.mu.compet.request.SearchBoardRequest;
 
@@ -30,6 +31,11 @@ import static com.google.android.gms.internal.zzs.TAG;
  * create an instance of this fragment.
  */
 public class UserOnlyPictureFragment extends Fragment {
+
+    int loadPage = 9;
+    int lastBoardNum = 0;
+    private boolean mLockListView;
+
 
     private MyPageGridAdapter mAdapter;
     private String userNick;
@@ -51,7 +57,8 @@ public class UserOnlyPictureFragment extends Fragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             userNick = getArguments().getString("userNick");
-
+        } else {
+            userNick = PropertyManager.getInstance().getUserNick();
         }
     }
 
@@ -63,20 +70,20 @@ public class UserOnlyPictureFragment extends Fragment {
         mAdapter = new MyPageGridAdapter(getContext(), R.layout.view_my_page_only_image);
         GridView gridView = (GridView) view.findViewById(R.id.gridView);
         gridView.setAdapter(mAdapter);
-        initData(userNick);
+        initData();
 
 
         return view;
     }
 
-    private void initData(String userNick) {
+    private void initData() {
 
-        SearchBoardRequest request = new SearchBoardRequest(getContext(), "", "", "name", userNick);
+        SearchBoardRequest request = new SearchBoardRequest(getContext(), "9", "", "name", userNick);
         NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<ListData<Board>>() {
             @Override
             public void onSuccess(NetworkRequest<ListData<Board>> request, ListData<Board> result) {
 
-                Log.d("DetailUserActivity", "성공 : " + result.getMessage());
+                Log.d("DetailUserActivity", "게시물 검색 성공 : " + result.getMessage());
                 List<Board> list = result.getData();
                 for(int i = 0; i < list.size(); i++) {
                     imageRequest(list.get(i));
@@ -99,14 +106,14 @@ public class UserOnlyPictureFragment extends Fragment {
             @Override
             public void onSuccess(NetworkRequest<ListData<FileData>> request, ListData<FileData> result) {
 
-                Log.d(TAG, "성공 : " + result.getMessage());
+                Log.d(TAG, "파일르스트 성공 : " + result.getMessage());
                 insertImage(result.getData());
 
             }
 
             @Override
             public void onFail(NetworkRequest<ListData<FileData>> request, int errorCode, String errorMessage, Throwable e) {
-                Log.d(TAG, "실패 : " + errorMessage);
+                Log.d(TAG, "파일리스트 실패 : " + errorMessage);
             }
         });
     }

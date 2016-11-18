@@ -3,7 +3,6 @@ package com.mu.compet.activity;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.util.Log;
-import android.webkit.CookieManager;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
@@ -28,10 +27,6 @@ public class MainActivity extends BaseActivity {
         setContentView(R.layout.activity_main);
 
         getTracker();
-
-        String cookie = CookieManager.getInstance().getCookie("http://192.168.6.18:9103/boards?pageNum=&lastBoardNum=");
-        Log.d(TAG, "Cookie : " + cookie);
-        PropertyManager.getInstance().setKeyCookie(cookie);
 
         userNick = PropertyManager.getInstance().getUserNick();
         userNum = PropertyManager.getInstance().getUserNum();

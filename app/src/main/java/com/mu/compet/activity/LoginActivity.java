@@ -14,6 +14,14 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.facebook.AccessToken;
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.FacebookSdk;
+import com.facebook.appevents.AppEventsLogger;
+import com.facebook.login.LoginResult;
+import com.facebook.login.widget.LoginButton;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -32,6 +40,8 @@ import com.mu.compet.manager.PropertyManager;
 import com.mu.compet.request.IdDuplicateCheckRequest;
 import com.mu.compet.request.LoginRequest;
 import com.mu.compet.util.ToastUtil;
+
+import java.util.regex.Pattern;
 
 public class LoginActivity extends BaseActivity implements GoogleApiClient.OnConnectionFailedListener, View.OnClickListener {
 
@@ -54,10 +64,19 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
     private String passWord;
     private boolean isShowPass = false;
 
+    private LoginButton loginFacebook;
+
+    private CallbackManager callbackManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        FacebookSdk.sdkInitialize(getApplicationContext());
         setContentView(R.layout.activity_login);
+
+        AppEventsLogger.activateApp(this);
+        callbackManager = CallbackManager.Factory.create();
+
 
         getTracker();
 
@@ -85,7 +104,9 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                loginRequest();
+                String userId = inputId.getText().toString();
+                String userPass = inputPassword.getText().toString();
+                loginRequest(userId, userPass);
             }
         });
 
@@ -108,12 +129,48 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
         passWord = inputPassword.getText().toString();
 
 
+        loginFacebook = (LoginButton)findViewById(R.id.login_button);
+        loginFacebook.setReadPermissions("email");
+        loginFacebook.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
+            @Override
+            public void onSuccess(LoginResult loginResult) {
+                processAfterFacebookLogin();
+
+            }
+
+            @Override
+            public void onCancel() {
+
+            }
+
+            @Override
+            public void onError(FacebookException error) {
+
+            }
+        });
+
     }
+
+    private void processAfterFacebookLogin() {
+        final AccessToken accessToken = AccessToken.getCurrentAccessToken();
+        if (accessToken != null) {
+            String token = accessToken.getToken();
+            String email = accessToken.getUserId();
+            Bundle bundle = new Bundle();
+            bundle.putString("email", email);
+            Intent intent = new Intent(LoginActivity.this, SocialSignUpActivity.class);
+            intent.putExtra("bundle", bundle);
+            startActivity(intent);
+
+        }
+    }
+
 
     // [START onActivityResult]
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        callbackManager.onActivityResult(requestCode, resultCode, data);
 
         // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
         if (requestCode == RC_SIGN_IN) {
@@ -144,7 +201,9 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
     // [END handleSignInResult]
 
     private void duplicateIdCheck(final Bundle bundle) {
-        String email = bundle.getString("email");
+        String[] convertEmail = bundle.getString("email").split(Pattern.quote("."));
+        final String email = convertEmail[0];
+
 
         IdDuplicateCheckRequest request = new IdDuplicateCheckRequest(this, email);
         NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<ResultMessage>() {
@@ -157,8 +216,7 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
 
             @Override
             public void onFail(NetworkRequest<ResultMessage> request, int errorCode, String errorMessage, Throwable e) {
-                Toast.makeText(LoginActivity.this, "이미 가입된 아이디입니다.", Toast.LENGTH_LONG).show();
-                signOut();
+                snsLoginRequest(email, email);
             }
         });
 
@@ -298,15 +356,41 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
             }
         };
         return textWatcher;
+
+
+    }
+
+    private void snsLoginRequest(String userId, String userPass) {
+
+
+        if (!TextUtils.isEmpty(userId) && !TextUtils.isEmpty(userPass)) {
+            LoginRequest request = new LoginRequest(this, SNS, userId, userPass);
+            NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<UserItemData>() {
+                @Override
+                public void onSuccess(NetworkRequest<UserItemData> request, UserItemData result) {
+
+                    loginSuccess(result);
+                }
+
+                @Override
+                public void onFail(NetworkRequest<UserItemData> request, int errorCode, String errorMessage, Throwable e) {
+                    Log.d(TAG, "실패 : " + errorMessage);
+                    ToastUtil.show(LoginActivity.this, "아이디와 패스워드를 확인하세요");
+                }
+            });
+        } else {
+            ToastUtil.show(LoginActivity.this, "값을 입력해주세요");
+        }
+
     }
 
 
-    private void loginRequest() {
-        String userId = inputId.getText().toString();
-        String userPass = inputPassword.getText().toString();
+
+    private void loginRequest(String userId, String userPass) {
+
 
         if (!TextUtils.isEmpty(userId) && !TextUtils.isEmpty(userPass)) {
-            LoginRequest request = new LoginRequest(this, "user", userId, userPass);
+            LoginRequest request = new LoginRequest(this, USER, userId, userPass);
             NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<UserItemData>() {
                 @Override
                 public void onSuccess(NetworkRequest<UserItemData> request, UserItemData result) {

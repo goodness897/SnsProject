@@ -71,6 +71,7 @@
                 android:layout_width="64dp"
                 android:layout_height="32dp"
                 android:layout_gravity="center"
+                android:text="0"
                 android:background="@color/brightGray"
                 android:gravity="center" />
 

@@ -206,6 +206,7 @@ public class UpdateMyProfileActivity extends BaseActivity {
                 public void onSuccess(NetworkRequest<ResultMessage> request, ResultMessage result) {
                     Log.d("UpdateMyProfileActivity", "성공 : " + result.getMessage());
                     PropertyManager.getInstance().setUserNick(userNick);
+
                     finish();
                 }
 

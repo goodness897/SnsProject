@@ -66,6 +66,7 @@ public class MainFragment extends Fragment implements View.OnClickListener {
 
         userNick = PropertyManager.getInstance().getUserNick();
         userNum = PropertyManager.getInstance().getUserNum();
+        Log.d("test", "UserNick : " + userNick + "userNum : " + userNum);
 
 
         imageButtons = new ArrayList<>();

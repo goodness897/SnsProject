@@ -12,7 +12,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.mu.compet.MyApplication;
@@ -23,13 +22,13 @@ import com.mu.compet.data.UserItemData;
 import com.mu.compet.manager.NetworkManager;
 import com.mu.compet.manager.NetworkRequest;
 import com.mu.compet.manager.PropertyManager;
-import com.mu.compet.request.IdDuplicateCheckRequest;
 import com.mu.compet.request.LoginRequest;
 import com.mu.compet.request.NewSignUpRequest;
 import com.mu.compet.request.NickNameDuplicateCheckRequest;
 import com.mu.compet.util.ToastUtil;
 
 import java.io.File;
+import java.util.regex.Pattern;
 
 public class SocialSignUpActivity extends BaseActivity {
 
@@ -39,10 +38,8 @@ public class SocialSignUpActivity extends BaseActivity {
     private ImageView imageProfile;
     private ImageView imageCamera;
 
-    private EditText editId;
     private EditText editNickName;
-    private EditText editPassword;
-    private EditText editPasswordCheck;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,40 +64,21 @@ public class SocialSignUpActivity extends BaseActivity {
         imageCamera = (ImageView) findViewById(R.id.image_camera);
 
         editNickName = (EditText) findViewById(R.id.edit_nickname);
-        editPassword = (EditText) findViewById(R.id.edit_password);
 
-        final String userId = bundle.getString("email");
+        final String[] email = bundle.getString("email").split(Pattern.quote("."));
+        final String userId = email[0];
         final String userUrl = bundle.getString("image");
         Glide.with(this).load(userUrl).placeholder(R.drawable.image_default_profile).error(R.drawable.image_default_profile)
                 .into(imageProfile);
-
-        final String userPass = userId;
 
         completeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 String userNick = editNickName.getText().toString();
-//        if(!TextUtils.isEmpty(mCurrentPhotoPath)) {
-//            userFile = new File(mCurrentPhotoPath);
-//        }
                 if (userFile != null) {
                     Log.d(TAG, "파일 : " + userFile.getAbsolutePath());
                 }
-                Log.d(TAG, "userID : " + userId + "userPass : " + userPass + "userNick : " + userNick);
-                NewSignUpRequest request = new NewSignUpRequest(MyApplication.getContext(), userId, userPass, userNick, userFile);
-                NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<ResultMessage>() {
-                    @Override
-                    public void onSuccess(NetworkRequest<ResultMessage> request, ResultMessage result) {
-
-                        Log.d(TAG, "회원 가입 성공 : " + result.getCode());
-
-                        loginRequest(userId, userPass);
-                    }
-                    @Override
-                    public void onFail(NetworkRequest<ResultMessage> request, int errorCode, String errorMessage, Throwable e) {
-                        Log.d(TAG, "가입 실패 : " + errorCode);
-                    }
-                });
+                signUpRequest(userId, userId, userNick, userFile);
             }
         });
         completeButton.setEnabled(true);
@@ -109,9 +87,25 @@ public class SocialSignUpActivity extends BaseActivity {
 
     }
 
+    private void signUpRequest(final String userId, final String userPass, String userNick, File userFile) {
+        NewSignUpRequest request = new NewSignUpRequest(MyApplication.getContext(), SNS, userId, userId, userNick, userFile);
+        NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<ResultMessage>() {
+            @Override
+            public void onSuccess(NetworkRequest<ResultMessage> request, ResultMessage result) {
+
+                Log.d(TAG, "회원 가입 성공 : " + result.getMessage());
+                loginRequest(userId, userPass);
+            }
+            @Override
+            public void onFail(NetworkRequest<ResultMessage> request, int errorCode, String errorMessage, Throwable e) {
+                Log.d(TAG, "가입 실패 : " + errorCode);
+            }
+        });
+    }
+
     private void loginRequest(String userId, String userPass) {
 
-        LoginRequest request = new LoginRequest(this, "sns", userId, userPass);
+        LoginRequest request = new LoginRequest(this, SNS, userId, userPass);
         NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<UserItemData>() {
             @Override
             public void onSuccess(NetworkRequest<UserItemData> request, UserItemData result) {
@@ -157,31 +151,6 @@ public class SocialSignUpActivity extends BaseActivity {
 
     }
 
-    public void duplicateIdCheckClicked(View view) {
-        // id 중복 요청
-        String userId = editId.getText().toString();
-        if (!TextUtils.isEmpty(userId)) {
-
-            IdDuplicateCheckRequest request = new IdDuplicateCheckRequest(this, userId);
-            NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<ResultMessage>() {
-                @Override
-                public void onSuccess(NetworkRequest<ResultMessage> request, ResultMessage result) {
-                    Toast.makeText(SocialSignUpActivity.this, "사용 가능한 아이디입니다.", Toast.LENGTH_LONG).show();
-                }
-
-                @Override
-                public void onFail(NetworkRequest<ResultMessage> request, int errorCode, String errorMessage, Throwable e) {
-                    Toast.makeText(SocialSignUpActivity.this, "이미 존재하는 아이디입니다.", Toast.LENGTH_LONG).show();
-
-                }
-            });
-        } else {
-            ToastUtil.show(this, "아이디를 입력하세요");
-        }
-
-
-    }
-
     public void duplicateNickNameCheckClicked(View view) {
         // nickname 중복 요청
 
@@ -210,7 +179,6 @@ public class SocialSignUpActivity extends BaseActivity {
 
                 case RC_GET_IMAGE:
                     StringBuilder str = new StringBuilder();
-                    if (resultCode == RESULT_OK) {
                         String[] files = intent.getStringArrayExtra("files");
                         for (String s : files) {
                             Log.i("ImageFiles", "files : " + s);
@@ -219,7 +187,6 @@ public class SocialSignUpActivity extends BaseActivity {
                         String fileName = str.toString();
                         contentUri = Uri.fromFile(new File(fileName));
                         cropImage(contentUri);
-                    }
 
                     break;
 //                case RC_GET_IMAGE:
