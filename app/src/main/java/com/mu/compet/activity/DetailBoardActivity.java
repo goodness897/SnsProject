@@ -375,9 +375,6 @@ public class DetailBoardActivity extends BaseActivity implements AbsListView.OnS
 
         if(firstVisibleItem >= count && totalItemCount != 0 && !mLockListView) {
             footerView.setVisibility(View.VISIBLE);
-        } else {
-            footerView.setVisibility(View.GONE);
         }
-
     }
 }

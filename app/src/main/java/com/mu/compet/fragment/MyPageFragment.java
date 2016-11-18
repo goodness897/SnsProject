@@ -83,14 +83,9 @@ public class MyPageFragment extends Fragment {
         initToolBar(getString(R.string.app_name), view);
 
         profileImage = (ImageView) view.findViewById(R.id.image_profile);
-        profileImage.setImageDrawable(null);
         nickNameView = (TextView) view.findViewById(R.id.text_nickname);
-
-
         tabHost = (FragmentTabHost) view.findViewById(R.id.tabHost);
-
         tabHost.setup(getContext(), getChildFragmentManager(), android.R.id.tabcontent);
-
         tabHost.addTab(tabHost.newTabSpec("tab1")
                         .setIndicator(getTabIndicator(getContext(), R.drawable.my_list_tab_selector))
                 , UserAllPostFragment.class, null);
