@@ -1,7 +1,9 @@
 package com.mu.compet.activity;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -126,7 +128,7 @@ public class DetailBoardActivity extends BaseActivity implements AbsListView.OnS
                 String boardNum = String.valueOf(board.getBoardNum());
 
                 if (!TextUtils.isEmpty(replyContent)) {
-                    addReplyRequest(replyContent, boardNum);
+                    registerReplyRequest(replyContent, boardNum);
                 } else {
                     Toast.makeText(DetailBoardActivity.this, "댓글을 입력하세요.", Toast.LENGTH_LONG).show();
                 }
@@ -237,7 +239,9 @@ public class DetailBoardActivity extends BaseActivity implements AbsListView.OnS
                     lastReplyNum = result.getData().get(result.getData().size() - 1).getReplyNum();
                     mLockListView = false;
                     footerView.setVisibility(View.GONE);
-
+                } else {
+                    Toast.makeText(DetailBoardActivity.this, "마지막 댓글입니다.", Toast.LENGTH_LONG).show();
+                    footerView.setVisibility(View.GONE);
                 }
             }
             @Override
@@ -297,7 +301,7 @@ public class DetailBoardActivity extends BaseActivity implements AbsListView.OnS
         }
     }
 
-    private void addReplyRequest(String replyContent, String boardNum) {
+    private void registerReplyRequest(String replyContent, String boardNum) {
         AddReplyRequest request = new AddReplyRequest(this, boardNum, replyContent);
         NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<ResultMessage>() {
             @Override
@@ -341,21 +345,37 @@ public class DetailBoardActivity extends BaseActivity implements AbsListView.OnS
 
 
         } else if (id == R.id.action_delete) {
-            DeleteBoardRequest request = new DeleteBoardRequest(this, boardNum);
-            NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<ResultMessage>() {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setPositiveButton("확인", new DialogInterface.OnClickListener() {
                 @Override
-                public void onSuccess(NetworkRequest<ResultMessage> request, ResultMessage result) {
-                    Log.d(TAG, "성공 : " + result.getMessage());
-                    finish();
-                }
+                public void onClick(final DialogInterface dialogInterface, int i) {
 
+                    DeleteBoardRequest request = new DeleteBoardRequest(getContext(), boardNum);
+                    NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<ResultMessage>() {
+                        @Override
+                        public void onSuccess(NetworkRequest<ResultMessage> request, ResultMessage result) {
+                            Log.d(TAG, "성공 : " + result.getMessage());
+                            dialogInterface.dismiss();
+                            finish();
+                        }
+
+                        @Override
+                        public void onFail(NetworkRequest<ResultMessage> request, int errorCode, String errorMessage, Throwable e) {
+                            Log.d(TAG, "실패 : " + errorMessage);
+                            Toast.makeText(DetailBoardActivity.this, "서버가 불안정합니다.", Toast.LENGTH_LONG).show();
+
+                        }
+                    });
+                }
+            }).setNegativeButton("취소", new DialogInterface.OnClickListener() {
                 @Override
-                public void onFail(NetworkRequest<ResultMessage> request, int errorCode, String errorMessage, Throwable e) {
-                    Log.d(TAG, "실패 : " + errorMessage);
-                    Toast.makeText(DetailBoardActivity.this, "서버가 불안정합니다.", Toast.LENGTH_LONG).show();
-
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    dialogInterface.dismiss();
                 }
-            });
+            }).setMessage("정말로 삭제하시겠습니까?");
+            AlertDialog dialog = builder.create();
+            dialog.show();
+
 
 
         }

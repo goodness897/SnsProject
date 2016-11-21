@@ -25,6 +25,8 @@ import com.mu.compet.request.DeleteReplyRequest;
 import com.mu.compet.request.UpdateReplyRequest;
 import com.mu.compet.util.StringUtil;
 
+import jp.wasabeef.glide.transformations.CropCircleTransformation;
+
 /**
  * Created by Mu on 2016-11-11.
  */
@@ -106,7 +108,7 @@ public class ReplyView extends FrameLayout {
                 + AbstractRequest.getHttpPort() + "/user/" + reply.getUserNum() + "/image";
 
         Glide.with(getContext()).load(imgPath).placeholder(R.drawable.image_default_profile)
-                .error(R.drawable.image_default_profile).into(profileImageView);
+                .error(R.drawable.image_default_profile).bitmapTransform(new CropCircleTransformation(getContext())).into(profileImageView);
         final AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
 
         if (reply != null) {

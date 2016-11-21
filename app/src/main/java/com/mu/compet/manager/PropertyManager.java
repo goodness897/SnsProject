@@ -26,6 +26,7 @@ public class PropertyManager {
     private static final String KEY_NICK_NAME = "userNick";
     private static final String KEY_USER_TYPE = "userType";
     private static final String KEY_COOKIE = "cookie";
+    private static final String KEY_TOKEN = "token";
 
 
     private PropertyManager() {
@@ -78,5 +79,14 @@ public class PropertyManager {
     }
     public String getUserType() {
         return mPrefs.getString(KEY_USER_TYPE, "");
+    }
+
+    public void setToken(String token) {
+        mEditor.putString(KEY_TOKEN, token);
+        mEditor.commit();
+
+    }
+    public String getToken() {
+        return mPrefs.getString(KEY_TOKEN, "");
     }
 }

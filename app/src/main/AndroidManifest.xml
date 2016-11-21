@@ -52,6 +52,27 @@
         <activity android:name=".activity.UpdateMyProfileActivity"/>
         <activity android:name=".activity.AddImageActivity"/>
         <activity android:name=".activity.SocialSignUpActivity"/>
+        <meta-data
+            android:name="io.fabric.ApiKey"
+            android:value="30d4389271c7de507016463babccdfa4cbc1e1a0" />
+
+        <!-- [START firebase_service] -->
+        <service
+            android:name=".fcm.MyFirebaseMessagingService">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+            </intent-filter>
+        </service>
+        <!-- [END firebase_service] -->
+        <!-- [START firebase_iid_service] -->
+        <service
+            android:name=".fcm.MyFirebaseInstanceIDService">
+            <intent-filter>
+                <action android:name="com.google.firebase.INSTANCE_ID_EVENT"/>
+            </intent-filter>
+        </service>
+        <!-- [END firebase_iid_service] -->
+
     </application>
 
 </manifest>

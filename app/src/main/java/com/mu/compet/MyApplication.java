@@ -3,10 +3,11 @@ package com.mu.compet;
 import android.app.Application;
 import android.content.Context;
 
-import com.facebook.FacebookSdk;
-import com.facebook.appevents.AppEventsLogger;
+import com.crashlytics.android.Crashlytics;
 import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.analytics.Tracker;
+
+import io.fabric.sdk.android.Fabric;
 
 /**
  * Created by Tacademy on 2016-08-29.
@@ -20,7 +21,7 @@ public class MyApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-
+        Fabric.with(this, new Crashlytics());
 
         context = this;
         analytics = GoogleAnalytics.getInstance(this);

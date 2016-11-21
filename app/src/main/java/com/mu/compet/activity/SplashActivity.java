@@ -3,6 +3,7 @@ package com.mu.compet.activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.drawable.AnimationDrawable;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -17,6 +18,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.OptionalPendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.mu.compet.R;
 import com.mu.compet.data.User;
 import com.mu.compet.data.UserItemData;
@@ -62,6 +64,28 @@ public class SplashActivity extends BaseActivity implements GoogleApiClient.OnCo
         if (anim.isRunning()) {
             loginCheck();
         }
+
+    }
+    private void registerToken() {
+
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... voids) {
+                String refreshedToken = FirebaseInstanceId.getInstance().getToken();
+                PropertyManager.getInstance().setToken(refreshedToken);
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                super.onPostExecute(aVoid);
+                realStart();
+            }
+        }.execute();
+
+    }
+
+    private void realStart() {
 
     }
 

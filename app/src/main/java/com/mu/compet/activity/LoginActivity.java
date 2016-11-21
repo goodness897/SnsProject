@@ -129,7 +129,7 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
         passWord = inputPassword.getText().toString();
 
 
-        loginFacebook = (LoginButton)findViewById(R.id.login_button);
+        loginFacebook = (LoginButton) findViewById(R.id.login_button);
         loginFacebook.setReadPermissions("email");
         loginFacebook.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
             @Override
@@ -188,7 +188,7 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
             GoogleSignInAccount acct = result.getSignInAccount();
             Bundle bundle = new Bundle();
             bundle.putString("email", acct.getEmail());
-            if(acct.getPhotoUrl() != null) {
+            if (acct.getPhotoUrl() != null) {
                 bundle.putString("image", acct.getPhotoUrl().toString());
             }
             duplicateIdCheck(bundle);
@@ -360,6 +360,7 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
 
     }
 
+
     private void snsLoginRequest(String userId, String userPass) {
 
 
@@ -385,7 +386,6 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
     }
 
 
-
     private void loginRequest(String userId, String userPass) {
 
 
@@ -394,8 +394,8 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
             NetworkManager.getInstance().getNetworkData(request, new NetworkManager.OnResultListener<UserItemData>() {
                 @Override
                 public void onSuccess(NetworkRequest<UserItemData> request, UserItemData result) {
-
                     loginSuccess(result);
+
                 }
 
                 @Override
